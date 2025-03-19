@@ -18,7 +18,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="px-3">
         <SidebarGroup>
-          <p className="text-sm text-gray-400 font-extralight">
+          <p className="text-sm dark:text-gray-400 font-extralight text-black">
             CEVEAI is an intelligent resume assessment platform designed to
             streamline the hiring process and enhance job applications. Using
             advanced AI, it analyzes CVs for structure, relevance, and key
