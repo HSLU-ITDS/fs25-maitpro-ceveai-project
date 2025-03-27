@@ -31,7 +31,7 @@ export function AppSidebar() {
             <Label htmlFor="cv-upload" className="text-sm">
               Files
             </Label>
-            <Input id="cv-upload" type="file" />
+            <Input id="cv-upload" type="file" accept=".pdf" />
           </div>
         </SidebarGroup>
 
