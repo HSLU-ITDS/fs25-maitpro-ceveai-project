@@ -5,7 +5,7 @@ import {
   SidebarGroup,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { Label } from "@radix-ui/react-dropdown-menu";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { Input } from "@/components/ui/input";
