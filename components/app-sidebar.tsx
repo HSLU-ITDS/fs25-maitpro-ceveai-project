@@ -8,7 +8,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
-import { Input } from "@/components/ui/input";
+import { FileUploader } from "@/components/FileUpload";
 
 export function AppSidebar() {
   return (
@@ -27,12 +27,7 @@ export function AppSidebar() {
           </p>
         </SidebarGroup>
         <SidebarGroup>
-          <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="cv-upload" className="text-sm">
-              Files
-            </Label>
-            <Input id="cv-upload" type="file" accept=".pdf" />
-          </div>
+          <FileUploader />
         </SidebarGroup>
 
         <SidebarGroup>
