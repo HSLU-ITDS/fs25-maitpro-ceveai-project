@@ -15,8 +15,17 @@ export function FileUploader() {
   return (
     <div className="grid w-full max-w-sm items-center gap-1.5">
       <Label htmlFor="cv-upload" className="text-sm">
-        Files
+        Upload CVs
       </Label>
+      <Input
+        id="cv-upload"
+        type="file"
+        accept=".pdf"
+        multiple
+        className="mt-2"
+        onChange={handleFileChange}
+      />
+
       {selectedFiles && selectedFiles.length > 1 && (
         <div
           className="w-full border rounded-md overflow-y-auto overflow-x-hidden"
@@ -29,14 +38,6 @@ export function FileUploader() {
           ))}
         </div>
       )}
-      <Input
-        id="cv-upload"
-        type="file"
-        accept=".pdf"
-        multiple
-        className="mt-2"
-        onChange={handleFileChange}
-      />
     </div>
   );
 }
