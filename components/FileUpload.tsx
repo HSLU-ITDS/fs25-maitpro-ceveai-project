@@ -1,14 +1,24 @@
 "use client";
+
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
 
-export function FileUploader() {
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+interface FileUploaderProps {
+  onFilesSelected: (files: File[]) => void;
+  selectedFiles: File[];
+}
 
+export function FileUploader({
+  onFilesSelected,
+  selectedFiles,
+}: FileUploaderProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setSelectedFiles(e.target.files);
+    const fileList = e.target.files;
+    if (fileList) {
+      const pdfFiles = Array.from(fileList).filter((file) =>
+        file.name.endsWith(".pdf")
+      );
+      onFilesSelected(pdfFiles);
     }
   };
 
@@ -26,12 +36,12 @@ export function FileUploader() {
         onChange={handleFileChange}
       />
 
-      {selectedFiles && selectedFiles.length > 1 && (
+      {selectedFiles.length > 1 && (
         <div
-          className="w-full border rounded-md overflow-y-auto overflow-x-hidden"
+          className="w-full border rounded-md overflow-y-auto overflow-x-hidden mt-2"
           style={{ maxHeight: "10rem" }}
         >
-          {Array.from(selectedFiles).map((file, index) => (
+          {selectedFiles.map((file, index) => (
             <div key={index} className="text-sm py-1 px-2 truncate">
               {file.name}
             </div>
