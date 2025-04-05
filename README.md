@@ -1,4 +1,4 @@
-# CEVEAI Project
+e# CEVEAI Project
 
 This is a full-stack application built with [Next.js](https://nextjs.org) for the frontend and [FastAPI](https://fastapi.tiangolo.com/) for the backend.
 

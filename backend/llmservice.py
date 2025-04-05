@@ -14,8 +14,11 @@ class BaseLLMService(ABC):
 
 class OpenAIService(BaseLLMService):
     """OpenAI implementation of the LLM service"""
+
+
     
-    def __init__(self, api_key: str):
+    def __init__(self):
+        api_key = os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=api_key)
     
     def generate_response(self, messages: List[Dict[str, str]], **kwargs) -> str:
@@ -29,9 +32,10 @@ class OpenAIService(BaseLLMService):
 class GeminiService(BaseLLMService):
     """Google Gemini implementation of the LLM service"""
     
-    def __init__(self, api_key: str):
+    def __init__(self):
+        api_key = os.getenv("GOOGLE_API_KEY")
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
     
     def generate_response(self, messages: List[Dict[str, str]], **kwargs) -> str:
         # Convert OpenAI message format to Gemini format
@@ -42,12 +46,19 @@ class GeminiService(BaseLLMService):
 def get_llm_service() -> BaseLLMService:
     """Factory function to get the appropriate LLM service based on available API keys"""
     
-    openai_key = os.getenv("OPENAI_API_KEY")
-    gemini_key = os.getenv("GOOGLE_API_KEY")
-    
-    if openai_key:
-        return OpenAIService(openai_key)
-    elif gemini_key:
-        return GeminiService(gemini_key)
+    provider = os.getenv("PROVIDER")
+
+
+    if provider == "openai":
+        return OpenAIService()
+    elif provider == "google":
+        return GeminiService()
     else:
         raise ValueError("No API keys found. Please set either OPENAI_API_KEY or GOOGLE_API_KEY in your .env file") 
+    
+    #if openai_key:
+    #    return OpenAIService(openai_key)
+    #elif gemini_key:
+    #    return GeminiService(gemini_key)
+    #else:
+    #    raise ValueError("No API keys found. Please set either OPENAI_API_KEY or GOOGLE_API_KEY in your .env file") 
