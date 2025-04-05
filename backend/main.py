@@ -93,6 +93,16 @@ async def upload_preview(
             logger.info(f"Processed file: {file.filename}")
 
         logger.info("Successfully processed all files")
+
+
+        messages = [
+            {
+                "role": "user",
+                "content": "Write a one-sentence bedtime story about a unicorn.",
+            }
+        ]
+        response = llm_service.generate_response(messages)
+        logger.info(response)
         
 
         return {
