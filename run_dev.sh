@@ -36,9 +36,13 @@ source fastapienv/bin/activate
 echo "Installing Python dependencies..."
 pip install fastapi uvicorn python-dotenv
 
-# Start backend server in the background
+# Create or clear the log file
+echo "Initializing backend.log..."
+echo "Backend server started at $(date)" > backend.log
+
+# Start backend server in the background with logging
 echo -e "${GREEN}Starting backend server...${NC}"
-uvicorn main:app --reload --port 8000 &
+uvicorn main:app --reload --port 8000 >> backend.log 2>&1 &
 BACKEND_PID=$!
 
 # Return to root directory

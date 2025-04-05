@@ -63,3 +63,7 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+
+# Logs
+backend.log
+*.log
