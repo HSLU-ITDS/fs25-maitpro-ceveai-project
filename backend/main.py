@@ -93,6 +93,8 @@ async def upload_preview(
             logger.info(f"Processed file: {file.filename}")
 
         logger.info("Successfully processed all files")
+        
+
         return {
             "status": "success",
             "message": f"{len(files)} PDF file(s) received successfully",
