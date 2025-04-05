@@ -21,6 +21,21 @@ Before you begin, ensure you have the following installed:
 - [Node.js](https://nodejs.org/) (Latest LTS version)
 - [Python 3](https://www.python.org/) (3.8 or higher)
 - [npm](https://www.npmjs.com/) (comes with Node.js)
+- OpenAI API key
+
+### Environment Setup
+
+Create a `.env` file in the root directory and add your OpenAI API key:
+
+```bash
+OPENAI_API_KEY=your_api_key_here
+```
+
+You can obtain an API key by:
+1. Going to [OpenAI's platform](https://platform.openai.com/)
+2. Creating an account or signing in
+3. Navigating to API keys section
+4. Creating a new API key
 
 ## Development Setup
 
