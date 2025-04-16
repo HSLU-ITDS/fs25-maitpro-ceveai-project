@@ -35,7 +35,7 @@ source fastapienv/bin/activate
 
 # Install Python dependencies
 echo "Installing Python dependencies..."
-pip install fastapi uvicorn python-dotenv
+pip install -r requirements.txt
 
 # Create or clear the log file
 echo "Initializing backend.log..."

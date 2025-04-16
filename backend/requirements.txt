@@ -3,4 +3,5 @@ uvicorn
 python-dotenv
 openai
 google-generativeai
-pandas 
+pandas
+python-multipart 
