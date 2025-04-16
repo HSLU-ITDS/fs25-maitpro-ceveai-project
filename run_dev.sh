@@ -3,6 +3,7 @@
 # Colors for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}🚀 Setting up development environment...${NC}"
@@ -44,6 +45,10 @@ echo "Backend server started at $(date)" > backend.log
 echo -e "${GREEN}Starting backend server...${NC}"
 uvicorn main:app --reload --port 8000 >> backend.log 2>&1 &
 BACKEND_PID=$!
+
+# Display backend URL prominently
+echo -e "\n${YELLOW}🔗 Backend API is running at: http://127.0.0.1:8000${NC}"
+echo -e "${YELLOW}📝 API Documentation: http://127.0.0.1:8000/docs${NC}\n"
 
 # Return to root directory
 cd ..

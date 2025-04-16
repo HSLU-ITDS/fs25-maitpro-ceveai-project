@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, UploadFile, Form, File
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
-from llmservice import get_llm_service
+from services.llm_service import get_llm_service
+from services.ocr_services import OCRService
 
 # Configure logging
 logging.basicConfig(
@@ -61,12 +62,39 @@ async def stream():
     except Exception as e:
         logger.error(f"Error in stream endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/test-prompt")
+async def test_prompt(prompt: str = Form(...)):
+    """
+    This endpoint is used to test the LLM service.
+    It will return the response from the LLM given a prompt from the user.
+    """
+    try:
+        logger.info(f"Received test-prompt request with prompt: {prompt}")
+        messages = [
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ]
+        response = llm_service.generate_response(messages)
+        logger.info(response)
+        return {"response": response}
+    except Exception as e:
+        logger.error(f"Error in test-prompt endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+    
+        
     
 @app.post("/upload-preview")
 async def upload_preview(
     files: List[UploadFile] = File(...),
-    prompt: str = Form(...)
 ):
+    """
+    This endpoint is used to upload a PDF file and return the metadata of the file.
+    """
     try:
         logger.info(f"Received upload-preview request with {len(files)} files")
         if not files:
@@ -94,25 +122,34 @@ async def upload_preview(
 
         logger.info("Successfully processed all files")
 
-
-        messages = [
-            {
-                "role": "user",
-                "content": "Write a one-sentence bedtime story about a unicorn.",
-            }
-        ]
-        response = llm_service.generate_response(messages)
-        logger.info(response)
-        
-
         return {
             "status": "success",
             "message": f"{len(files)} PDF file(s) received successfully",
-            "files": files_info,
-            "prompt": prompt
+            "files": files_info
         }
 
     except Exception as e:
         logger.error(f"Error in upload-preview endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    
+@app.post("/process-cv")
+async def process_cv(file: UploadFile = File(...)):
+    try:
+        logger.info(f"Received CV processing request for file: {file.filename}")
+        
+        # Initialize OCR service
+        ocr_service = OCRService()
+        
+        # Process the document using OCR service
+        result = await ocr_service.parse_document(file)
+        
+        logger.info(result)
+        return {
+            "status": "success",
+            "result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Error processing CV: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error processing CV: {str(e)}")
     
