@@ -138,3 +138,101 @@ class OCRService:
                 "items": []
             }
     
+    async def summarize_content(self, content: str, criteria: List[str]) -> Dict[str, Any]:
+        """
+        Summarize the content of a CV and score it against user criteria using LLM.
+        Returns a structured response with scores for each criterion.
+        """
+        try:
+            messages = [
+                {
+                    "role": "system",
+                    "content": """You are an expert CV analyzer. Your task is to analyze a CV and score it against specific criteria.
+                    For each criterion, provide a score from 0-10 and a brief explanation of why that score was given.
+                    Return the response in a structured format with scores and explanations for each criterion."""
+                },
+                {
+                    "role": "user",
+                    "content": f"""Please analyze this CV content and score it against these criteria: {', '.join(criteria)}
+                    
+                    CV Content:
+                    {content}
+                    
+                    Provide your analysis in the following format:
+                    {{
+                        "scores": {{
+                            "criterion1": {{
+                                "score": <number>,
+                                "explanation": "<explanation>"
+                            }},
+                            "criterion2": {{
+                                "score": <number>,
+                                "explanation": "<explanation>"
+                            }}
+                        }}
+                    }}"""
+                }
+            ]
+            
+            response = await self.llm_service.generate_response(messages)
+            return response
+            
+        except Exception as e:
+            print(f"Error summarizing content: {str(e)}")
+            raise
+
+    async def rank_cvs(self, cv_summaries: List[Dict[str, Any]], criteria: List[str]) -> List[Dict[str, Any]]:
+        """
+        Rank CVs based on their summaries and user criteria using LLM.
+        Returns an ordered list of CVs with their rankings and scores.
+        """
+        try:
+            messages = [
+                {
+                    "role": "system",
+                    "content": """You are an expert CV ranking system. Your task is to compare multiple CVs and rank them based on how well they meet the specified criteria.
+                    Consider the scores and explanations provided for each CV and provide a final ranking.
+                    Return the response in a structured format with the ranked list of CVs."""
+                },
+                {
+                    "role": "user",
+                    "content": f"""Please rank these CVs based on these criteria: {', '.join(criteria)}
+                    
+                    CV Summaries:
+                    {json.dumps(cv_summaries, indent=2)}
+                    
+                    Provide your ranking in the following format:
+                    {{
+                        "ranked_cvs": [
+                            {{
+                                "filename": "<filename>",
+                                "overall_score": <number>,
+                                "ranking": <number>,
+                                "summary": "<brief explanation of why this CV was ranked at this position>"
+                            }},
+                            ...
+                        ]
+                    }}"""
+                }
+            ]
+            
+            response = await self.llm_service.generate_response(messages)
+            
+            
+            # Clean up the response by removing markdown code block formatting
+            response = response.strip()
+            if response.startswith("```json"):
+                response = response[7:]  # Remove ```json
+            if response.startswith("```"):
+                response = response[3:]  # Remove ```
+            if response.endswith("```"):
+                response = response[:-3]  # Remove ```
+            response = response.strip()
+            
+            # Parse the JSON response
+            result = json.loads(response)
+            return result.get("ranked_cvs", [])            
+        except Exception as e:
+            print(f"Error ranking CVs: {str(e)}")
+            raise
+    

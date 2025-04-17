@@ -152,4 +152,61 @@ async def process_cv(file: UploadFile = File(...)):
     except Exception as e:
         logger.error(f"Error processing CV: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error processing CV: {str(e)}")
-    
+
+@app.post("/rank-cvs")
+async def rank_cvs(
+    files: List[UploadFile] = File(...),
+    criteria: List[str] = Form(...)
+):
+    """
+    This endpoint receives a list of CVs and user criteria, processes them,
+    and returns a ranked list of CVs based on how well they match the criteria.
+    """
+    try:
+        logger.info(f"Received rank-cvs request with {len(files)} files and criteria: {criteria}")
+        
+        if not files:
+            logger.warning("No files provided in request")
+            raise HTTPException(status_code=400, detail="No files provided")
+            
+        if not criteria:
+            logger.warning("No criteria provided in request")
+            raise HTTPException(status_code=400, detail="No criteria provided")
+        
+        # Initialize OCR service
+        ocr_service = OCRService()
+        
+        # Process each CV and get their summaries
+        cv_summaries = []
+        for file in files:
+            # Parse the document
+            parsed_content = await ocr_service.parse_document(file)
+            
+            # Get the markdown content from the parsed result
+            content = parsed_content.get("markdown_content", "")
+            
+            # Summarize the content against the criteria
+            summary = await ocr_service.summarize_content(content, criteria)
+            
+            cv_summaries.append({
+                "filename": file.filename,
+                "summary": summary
+            })
+        
+        # Rank the CVs based on their summaries
+        ranked_cvs = await ocr_service.rank_cvs(cv_summaries, criteria)
+        
+        logger.info("Successfully ranked CVs")
+        return {
+            "status": "success",
+            "ranked_cvs": ranked_cvs
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in rank-cvs endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error ranking CVs: {str(e)}")
+
+
+
+
+
