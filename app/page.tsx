@@ -11,14 +11,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ResultsTable } from "@/components/results-table";
 
 const Home = () => {
   const { setTheme } = useTheme();
   return (
-    <div className="h-full">
-      <div className="flex justify-between p-5 ">
+    <div className="flex flex-col h-screen">
+      {/* Top bar */}
+      <div className="flex justify-between py-3 px-5">
         <SidebarTrigger />
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon">
@@ -39,6 +40,16 @@ const Home = () => {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      </div>
+
+      {/* Two half-divs */}
+      <div className="flex-1">
+        <div className="h-1/2 flex">
+          <ResultsTable />
+        </div>
+        <div className="h-1/2">
+          <p>hello</p>
+        </div>
       </div>
     </div>
   );
