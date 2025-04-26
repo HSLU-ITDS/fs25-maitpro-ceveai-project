@@ -43,7 +43,7 @@ const Home = () => {
       </div>
 
       {/* Two half-divs */}
-      <div className="flex-1">
+      <div className="flex-1 mx-6">
         <div className="h-1/2 flex">
           <ResultsTable />
         </div>
