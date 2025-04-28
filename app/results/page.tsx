@@ -5,8 +5,8 @@ import Header from "@/components/header";
 
 const Home = () => {
   return (
-    <div className="flex flex-col h-screen">
-      <div className="mx-10 flex-1 flex flex-col ">
+    <div className="flex flex-col h-full">
+      <div className="mx-10 flex-1 flex flex-col space-y-6">
         <div className="h-full flex-5/12">
           <ResultsTable />
         </div>
