@@ -4,6 +4,7 @@ import "./globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
+import Header from "@/components/header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <ThemeProvider
           attribute="class"
@@ -38,7 +39,10 @@ export default function RootLayout({
         >
           <SidebarProvider>
             <AppSidebar />
-            <main className="w-full">{children}</main>
+            <main className="flex-1 flex flex-col">
+              <Header />
+              <div className="flex-1">{children}</div>
+            </main>
           </SidebarProvider>
         </ThemeProvider>
       </body>

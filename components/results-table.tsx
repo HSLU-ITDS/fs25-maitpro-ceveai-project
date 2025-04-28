@@ -13,7 +13,7 @@ import { candidates } from "@/lib/data";
 export function ResultsTable() {
   return (
     <div className="w-full">
-      <h1 className="py-2 text-gray-400">Top Candidates</h1>
+      <h1 className="py-1 text-slate-400">Top Candidates</h1>
 
       {/* Scroll container */}
       <div className="max-h-[300px] overflow-y-auto border rounded-md">

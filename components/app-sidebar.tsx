@@ -61,13 +61,13 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="pt-5">
-        <h1 className="font-extrabold text-4xl p-3">CEVEAI</h1>
+        <h1 className="font-extrabold text-4xl px-3">CEVEAI</h1>
       </SidebarHeader>
 
       <SidebarContent className="px-3">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <SidebarGroup>
-            <p className="text-sm dark:text-gray-400 font-extralight text-black">
+            <p className="text-sm text-muted-foreground">
               CEVEAI is an intelligent resume assessment platform designed to
               streamline the hiring process and enhance job applications. Using
               advanced AI, it analyzes CVs for structure, relevance, and key
@@ -94,7 +94,7 @@ export function AppSidebar() {
               <Button type="submit" disabled={loading || files.length === 0}>
                 {loading ? "Evaluating..." : "Evaluate"}
               </Button>
-              {error && <p className="text-red-500 text-sm">{error}</p>}
+              {error && <p className="text-destructive text-sm">{error}</p>}
               {result && (
                 <div className="mt-2 p-2 border rounded text-sm">
                   <p className="text-green-600">✓ {result.message}</p>
