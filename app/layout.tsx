@@ -5,6 +5,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import Header from "@/components/header";
+import Footer from "@/components/footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,10 +40,13 @@ export default function RootLayout({
         >
           <SidebarProvider>
             <AppSidebar />
-            <main className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col h-screen">
               <Header />
-              <div className="flex-1">{children}</div>
-            </main>
+              <main className="flex-1 overflow-hidden">
+                <div className="h-full overflow-auto">{children}</div>
+              </main>
+              <Footer />
+            </div>
           </SidebarProvider>
         </ThemeProvider>
       </body>

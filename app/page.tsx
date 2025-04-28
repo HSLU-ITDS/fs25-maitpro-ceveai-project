@@ -27,16 +27,21 @@ const Landing = () => {
 
   const getStartedSteps = [
     {
-      title: "Define your job requirements and specifications in the sidebar",
+      title: "Define Requirements",
+      description:
+        "Define your job requirements and specifications in the sidebar",
     },
     {
-      title: "Upload candidate CVs for analysis",
+      title: "Upload CVs",
+      description: "Upload candidate CVs for analysis",
     },
     {
-      title: "Adjust metrics & weighting as needed",
+      title: "Adjust Metrics",
+      description: "Adjust metrics & weighting as needed",
     },
     {
-      title: "Evaluate and review the AI-powered results",
+      title: "Review Results",
+      description: "Evaluate and review the AI-powered results",
     },
   ];
 
