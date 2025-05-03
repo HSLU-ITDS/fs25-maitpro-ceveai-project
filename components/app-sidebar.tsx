@@ -13,26 +13,8 @@ import { Button } from "@/components/ui/button";
 import { FileUploader } from "@/components/FileUpload";
 import { useState } from "react";
 import MetricsPopup from "./metrics-popup";
-
-async function evaluateFiles(files: File[], prompt: string) {
-  const formData = new FormData();
-  files.forEach((file) => formData.append("files", file));
-  formData.append("prompt", prompt);
-
-  const response = await fetch("http://localhost:8000/upload-preview", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Upload failed: ${response.statusText}`);
-  }
-
-  return await response.json();
-}
+import { criteria } from "@/lib/data";
+import { mergeCriteriaWeights } from "@/lib/utils";
 
 export function AppSidebar() {
   const [files, setFiles] = useState<File[]>([]);
@@ -40,18 +22,35 @@ export function AppSidebar() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null); // optionally type this later
+  const [criteriaWeights, setCriteriaWeights] = useState<{
+    [key: string]: number;
+  }>(() =>
+    Object.fromEntries(
+      criteria.map((c) => [c.name, Math.round(c.weight * 100)])
+    )
+  );
 
+  // Call the /test-input endpoint with files and merged criteria
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setResult(null);
-
+    const adjustedCriteria = mergeCriteriaWeights(criteria, criteriaWeights);
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+    formData.append("criteria", JSON.stringify(adjustedCriteria));
+    formData.append("prompt", JSON.stringify({ job_description: prompt }));
     try {
-      const data = await evaluateFiles(files, prompt);
+      const response = await fetch("http://localhost:8000/test-input", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error(`Request failed: ${response.statusText}`);
+      }
+      const data = await response.json();
       setResult(data);
-      setFiles([]);
-      setPrompt("");
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -82,7 +81,7 @@ export function AppSidebar() {
           <SidebarGroup>
             <div className="grid gap-1.5">
               <Label htmlFor="message" className="text-sm">
-                Prompt
+                Job Description
               </Label>
               <Textarea
                 id="message"
@@ -94,18 +93,14 @@ export function AppSidebar() {
           </SidebarGroup>
 
           <SidebarGroup className="">
-            {" "}
-            <MetricsPopup />
+            <MetricsPopup
+              values={criteriaWeights}
+              setValues={setCriteriaWeights}
+            />
             <Button type="submit" disabled={loading || files.length === 0}>
               {loading ? "Evaluating..." : "Evaluate"}
             </Button>
             {error && <p className="text-destructive text-sm">{error}</p>}
-            {result && (
-              <div className="mt-2 p-2 border rounded text-sm">
-                <p className="text-green-600">✓ {result.message}</p>
-                <p className="text-gray-600 mt-1 text-xs">{result.prompt}</p>
-              </div>
-            )}
           </SidebarGroup>
         </form>
       </SidebarContent>

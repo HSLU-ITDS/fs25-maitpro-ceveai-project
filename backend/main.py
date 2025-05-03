@@ -1,6 +1,7 @@
 import os
 import logging
 from datetime import datetime
+import json
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, UploadFile, Form, File
@@ -65,30 +66,84 @@ async def stream():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/test-prompt")
-async def test_prompt(prompt: str = Form(...)):
+@app.post("/test-input")
+async def test_input(
+    files: List[UploadFile] = File(...),
+    criteria: str = Form(...),
+    prompt: str = Form(None)
+):
     """
-    This endpoint is used to test the LLM service.
-    It will return the response from the LLM given a prompt from the user.
+    Test endpoint to receive PDF files, criteria, and job description, and display them clearly.
     """
     try:
-        logger.info(f"Received test-prompt request with prompt: {prompt}")
-        messages = [
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ]
-        response = llm_service.generate_response(messages)
-        logger.info(response)
-        return {"response": response}
+        logger.info(f"Received test-input request with {len(files)} files, criteria: {criteria}, and prompt: {prompt}")
+        if not files:
+            logger.warning("No files provided in request")
+            raise HTTPException(status_code=400, detail="No files provided")
+        if not criteria:
+            logger.warning("No criteria provided in request")
+            raise HTTPException(status_code=400, detail="No criteria provided")
+        if not prompt:
+            logger.warning("No prompt (job description) provided in request")
+            raise HTTPException(status_code=400, detail="No prompt (job description) provided")
+
+        # Parse criteria JSON
+        try:
+            parsed_criteria = json.loads(criteria)
+        except Exception as e:
+            logger.error(f"Failed to parse criteria JSON: {str(e)}")
+            raise HTTPException(status_code=400, detail="Invalid criteria JSON")
+
+        # Parse prompt JSON
+        parsed_prompt = None
+        if prompt:
+            try:
+                parsed_prompt = json.loads(prompt)
+            except Exception as e:
+                logger.error(f"Failed to parse prompt JSON: {str(e)}")
+                raise HTTPException(status_code=400, detail="Invalid prompt JSON")
+
+        files_info = []
+        for file in files:
+            if not file.filename.lower().endswith(".pdf") or file.content_type != "application/pdf":
+                logger.warning(f"Invalid file type: {file.filename}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"File '{file.filename}' is not a valid PDF"
+                )
+            content = await file.read()
+            files_info.append({
+                "filename": file.filename,
+                "content_type": file.content_type,
+                "size": len(content)
+            })
+            logger.info(f"Processed file: {file.filename}")
+
+        logger.info("Successfully processed all files, criteria, and prompt")
+        # Format the output for best readability
+        return {
+            "status": "success",
+            "message": f"{len(files)} PDF file(s), criteria, and job description received successfully",
+            "files": [
+                {
+                    "filename": f["filename"],
+                    "content_type": f["content_type"],
+                    "size (bytes)": f["size"]
+                } for f in files_info
+            ],
+            "criteria": [
+                {
+                    "name": c.get("name"),
+                    "weight": c.get("weight"),
+                    "description": c.get("description")
+                } for c in parsed_criteria
+            ],
+            "job_description": parsed_prompt["job_description"] if parsed_prompt and "job_description" in parsed_prompt else None
+        }
     except Exception as e:
-        logger.error(f"Error in test-prompt endpoint: {str(e)}")
+        logger.error(f"Error in test-input endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-    
-        
-    
 @app.post("/upload-preview")
 async def upload_preview(
     files: List[UploadFile] = File(...),
