@@ -38,8 +38,8 @@ export function FileUploader({
 
       {selectedFiles.length > 1 && (
         <div
-          className="w-full border rounded-md overflow-y-auto overflow-x-hidden mt-2"
-          style={{ maxHeight: "10rem" }}
+          className="w-full border rounded-md overflow-y-scroll mt-2 max-h-32"
+          // style={{ maxHeight: "10rem" }}
         >
           {selectedFiles.map((file, index) => (
             <div key={index} className="text-sm py-1 px-2 truncate">

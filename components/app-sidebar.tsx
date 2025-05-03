@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { FileUploader } from "@/components/FileUpload";
 import { useState } from "react";
+import MetricsPopup from "./metrics-popup";
 
 async function evaluateFiles(files: File[], prompt: string) {
   const formData = new FormData();
@@ -60,22 +61,20 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="pt-5">
-        <h1 className="font-extrabold text-4xl px-3">CEVEAI</h1>
-      </SidebarHeader>
-
       <SidebarContent className="px-3">
+        <SidebarGroup>
+          <SidebarHeader className="pt-5">
+            <h1 className="font-extrabold text-4xl">CEVEAI</h1>
+          </SidebarHeader>
+          <p className="text-sm text-muted-foreground">
+            CEVEAI is an intelligent resume assessment platform designed to
+            streamline the hiring process and enhance job applications. Using
+            advanced AI, it analyzes CVs for structure, relevance, and key
+            qualifications, providing instant feedback and actionable
+            improvement suggestions.
+          </p>
+        </SidebarGroup>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <SidebarGroup>
-            <p className="text-sm text-muted-foreground">
-              CEVEAI is an intelligent resume assessment platform designed to
-              streamline the hiring process and enhance job applications. Using
-              advanced AI, it analyzes CVs for structure, relevance, and key
-              qualifications, providing instant feedback and actionable
-              improvement suggestions.
-            </p>
-          </SidebarGroup>
-
           <SidebarGroup>
             <FileUploader selectedFiles={files} onFilesSelected={setFiles} />
           </SidebarGroup>
@@ -91,17 +90,22 @@ export function AppSidebar() {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
               />
-              <Button type="submit" disabled={loading || files.length === 0}>
-                {loading ? "Evaluating..." : "Evaluate"}
-              </Button>
-              {error && <p className="text-destructive text-sm">{error}</p>}
-              {result && (
-                <div className="mt-2 p-2 border rounded text-sm">
-                  <p className="text-green-600">✓ {result.message}</p>
-                  <p className="text-gray-600 mt-1 text-xs">{result.prompt}</p>
-                </div>
-              )}
             </div>
+          </SidebarGroup>
+
+          <SidebarGroup className="">
+            {" "}
+            <MetricsPopup />
+            <Button type="submit" disabled={loading || files.length === 0}>
+              {loading ? "Evaluating..." : "Evaluate"}
+            </Button>
+            {error && <p className="text-destructive text-sm">{error}</p>}
+            {result && (
+              <div className="mt-2 p-2 border rounded text-sm">
+                <p className="text-green-600">✓ {result.message}</p>
+                <p className="text-gray-600 mt-1 text-xs">{result.prompt}</p>
+              </div>
+            )}
           </SidebarGroup>
         </form>
       </SidebarContent>
