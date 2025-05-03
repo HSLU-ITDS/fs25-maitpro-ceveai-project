@@ -8,6 +8,7 @@ from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from services.llm_service import get_llm_service
 from services.ocr_services import OCRService
+#from services.pdf_service import PDFService
 
 # Configure logging
 logging.basicConfig(
@@ -187,6 +188,7 @@ async def rank_cvs(
             
             # Summarize the content against the criteria
             summary = await ocr_service.summarize_content(content, criteria)
+            print(summary)
             
             cv_summaries.append({
                 "filename": file.filename,
@@ -205,6 +207,38 @@ async def rank_cvs(
     except Exception as e:
         logger.error(f"Error in rank-cvs endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error ranking CVs: {str(e)}")
+
+#@app.post("/convert-pdf-to-images")
+#async def convert_pdf_to_images(file: UploadFile = File(...), dpi: int = 200):
+#    """
+#    Convert a PDF file to a list of images.
+#    Each image is returned as a base64-encoded string.
+#    """
+#    try:
+#        logger.info(f"Received PDF conversion request for file: {file.filename}")
+        
+#        # Validate file type
+#        if not file.filename.lower().endswith(".pdf") or file.content_type != "application/pdf":
+#            raise HTTPException(
+#                status_code=400,
+#                detail="File must be a PDF"
+#            )
+        
+#        # Initialize PDF service
+#        pdf_service = PDFService()
+        
+#        # Convert PDF to images
+#        images = await pdf_service.convert_pdf_to_images(file, dpi)
+        
+#        logger.info(f"Successfully converted PDF to {len(images)} images")
+#        return {
+#            "status": "success",
+#            "images": images
+#        }
+        
+#    except Exception as e:
+#        logger.error(f"Error converting PDF to images: {str(e)}")
+#        raise HTTPException(status_code=500, detail=str(e))
 
 
 

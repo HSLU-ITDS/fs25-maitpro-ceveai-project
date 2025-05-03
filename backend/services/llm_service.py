@@ -34,7 +34,7 @@ class OpenAIService(BaseLLMService):
     
     async def generate_vision(self, messages: List[Dict[str, Any]], **kwargs) -> str:
         response = self.client.chat.completions.create(
-            model="gpt-4-vision-preview",
+            model="gpt-4o",
             messages=messages,
             max_tokens=4096,
             **kwargs
