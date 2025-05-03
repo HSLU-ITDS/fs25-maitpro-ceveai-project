@@ -8,7 +8,7 @@ class BaseLLMService(ABC):
     """Base class for LLM services"""
     
     @abstractmethod
-    def generate_response(self, messages: List[Dict[str, str]], **kwargs) -> str:
+    async def generate_response(self, messages: List[Dict[str, str]], **kwargs) -> str:
         """Generate a response from the LLM"""
         pass
     
@@ -24,7 +24,7 @@ class OpenAIService(BaseLLMService):
         api_key = os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=api_key)
     
-    def generate_response(self, messages: List[Dict[str, str]], **kwargs) -> str:
+    async def generate_response(self, messages: List[Dict[str, str]], **kwargs) -> str:
         response = self.client.chat.completions.create(
             model=kwargs.get("model", "gpt-3.5-turbo"),
             messages=messages,
@@ -34,7 +34,7 @@ class OpenAIService(BaseLLMService):
     
     async def generate_vision(self, messages: List[Dict[str, Any]], **kwargs) -> str:
         response = self.client.chat.completions.create(
-            model="gpt-4-vision-preview",
+            model="gpt-4o",
             messages=messages,
             max_tokens=4096,
             **kwargs
@@ -50,7 +50,7 @@ class GeminiService(BaseLLMService):
         self.chat_model = genai.GenerativeModel('gemini-1.5-flash')
         self.vision_model = genai.GenerativeModel('gemini-1.5-flash')
     
-    def generate_response(self, messages: List[Dict[str, str]], **kwargs) -> str:
+    async def generate_response(self, messages: List[Dict[str, str]], **kwargs) -> str:
         # Convert OpenAI message format to Gemini format
         prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
         response = self.chat_model.generate_content(prompt)

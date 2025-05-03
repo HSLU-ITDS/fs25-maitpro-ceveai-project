@@ -1,0 +1,16 @@
+{
+    "scores": {
+        "5+ years of Python experience": {
+            "score": 0,
+            "explanation": "The CV highlights over 5 years of experience in marketing, but makes no mention of Python programming experience.  Therefore, the score is 0."
+        },
+        "Bachelor's degree in Computer Science": {
+            "score": 0,
+            "explanation": "The CV shows a Bachelor of Science degree in Marketing, not Computer Science.  The required degree is absent, resulting in a score of 0."
+        },
+        "Experience with AWS": {
+            "score": 0,
+            "explanation": "There is no mention of Amazon Web Services (AWS) or any cloud computing experience in the provided CV content. The score is 0."
+        }
+    }
+}

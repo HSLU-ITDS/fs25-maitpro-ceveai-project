@@ -8,6 +8,7 @@ from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from services.llm_service import get_llm_service
 from services.ocr_services import OCRService
+#from services.pdf_service import PDFService
 
 # Configure logging
 logging.basicConfig(
@@ -152,4 +153,94 @@ async def process_cv(file: UploadFile = File(...)):
     except Exception as e:
         logger.error(f"Error processing CV: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error processing CV: {str(e)}")
-    
+
+@app.post("/rank-cvs")
+async def rank_cvs(
+    files: List[UploadFile] = File(...),
+    criteria: List[str] = Form(...)
+):
+    """
+    This endpoint receives a list of CVs and user criteria, processes them,
+    and returns a ranked list of CVs based on how well they match the criteria.
+    """
+    try:
+        logger.info(f"Received rank-cvs request with {len(files)} files and criteria: {criteria}")
+        
+        if not files:
+            logger.warning("No files provided in request")
+            raise HTTPException(status_code=400, detail="No files provided")
+            
+        if not criteria:
+            logger.warning("No criteria provided in request")
+            raise HTTPException(status_code=400, detail="No criteria provided")
+        
+        # Initialize OCR service
+        ocr_service = OCRService()
+        
+        # Process each CV and get their summaries
+        cv_summaries = []
+        for file in files:
+            # Parse the document
+            parsed_content = await ocr_service.parse_document(file)
+            
+            # Get the markdown content from the parsed result
+            content = parsed_content.get("markdown_content", "")
+            
+            # Summarize the content against the criteria
+            summary = await ocr_service.summarize_content(content, criteria)
+            print(summary)
+            
+            cv_summaries.append({
+                "filename": file.filename,
+                "summary": summary
+            })
+        
+        # Rank the CVs based on their summaries
+        ranked_cvs = await ocr_service.rank_cvs(cv_summaries, criteria)
+        
+        logger.info("Successfully ranked CVs")
+        return {
+            "status": "success",
+            "ranked_cvs": ranked_cvs
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in rank-cvs endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error ranking CVs: {str(e)}")
+
+#@app.post("/convert-pdf-to-images")
+#async def convert_pdf_to_images(file: UploadFile = File(...), dpi: int = 200):
+#    """
+#    Convert a PDF file to a list of images.
+#    Each image is returned as a base64-encoded string.
+#    """
+#    try:
+#        logger.info(f"Received PDF conversion request for file: {file.filename}")
+        
+#        # Validate file type
+#        if not file.filename.lower().endswith(".pdf") or file.content_type != "application/pdf":
+#            raise HTTPException(
+#                status_code=400,
+#                detail="File must be a PDF"
+#            )
+        
+#        # Initialize PDF service
+#        pdf_service = PDFService()
+        
+#        # Convert PDF to images
+#        images = await pdf_service.convert_pdf_to_images(file, dpi)
+        
+#        logger.info(f"Successfully converted PDF to {len(images)} images")
+#        return {
+#            "status": "success",
+#            "images": images
+#        }
+        
+#    except Exception as e:
+#        logger.error(f"Error converting PDF to images: {str(e)}")
+#        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
+

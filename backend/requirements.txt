@@ -4,4 +4,5 @@ python-dotenv
 openai
 google-generativeai
 pandas
-python-multipart 
+python-multipart
+pdf2image 
