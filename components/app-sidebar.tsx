@@ -30,7 +30,7 @@ export function AppSidebar() {
     )
   );
 
-  // Call the /test-input endpoint with files and merged criteria
+  // Call the /analyze-cvs endpoint with files and merged criteria
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -42,7 +42,7 @@ export function AppSidebar() {
     formData.append("criteria", JSON.stringify(adjustedCriteria));
     formData.append("prompt", JSON.stringify({ job_description: prompt }));
     try {
-      const response = await fetch("http://localhost:8000/test-input", {
+      const response = await fetch("http://localhost:8000/analyze-cvs", {
         method: "POST",
         body: formData,
       });
@@ -50,6 +50,7 @@ export function AppSidebar() {
         throw new Error(`Request failed: ${response.statusText}`);
       }
       const data = await response.json();
+      console.log("Analyze CVs response:", data);
       setResult(data);
     } catch (err) {
       setError((err as Error).message);
