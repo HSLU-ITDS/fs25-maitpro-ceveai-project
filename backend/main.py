@@ -188,7 +188,7 @@ async def rank_cvs(
             
             # Summarize the content against the criteria
             summary = await ocr_service.summarize_content(content, criteria)
-            print(summary)
+            #print(summary)
             
             cv_summaries.append({
                 "filename": file.filename,
@@ -199,10 +199,12 @@ async def rank_cvs(
         ranked_cvs = await ocr_service.rank_cvs(cv_summaries, criteria)
         
         logger.info("Successfully ranked CVs")
-        return {
+        result = {
             "status": "success",
             "ranked_cvs": ranked_cvs
         }
+        logger.info(result)
+        return result
         
     except Exception as e:
         logger.error(f"Error in rank-cvs endpoint: {str(e)}")
