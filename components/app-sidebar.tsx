@@ -53,8 +53,8 @@ export function AppSidebar() {
         throw new Error(`Request failed: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log("Analyze CVs response:", data);
-      router.push("/results");
+      const jobAnalysisId = data.job_analysis_id;
+      router.push(`/results/${jobAnalysisId}`);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -92,6 +92,7 @@ export function AppSidebar() {
                 placeholder="Type your message here."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
+                className="h-10 max-h-16 overflow-auto resize-none"
               />
             </div>
           </SidebarGroup>

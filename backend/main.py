@@ -187,7 +187,7 @@ async def analyze_cvs(
             cv_analysis = models.CVAnalysis(
                 job_analysis_id=job_analysis.id,
                 filename=result["filename"],
-                candidate_name=result.get("candidate_name", "Unknown"),
+                candidate_name=result.get("candidate", "Unknown"),
                 summary=result.get("summary", ""),
                 total_score=total_score
             )
@@ -233,6 +233,43 @@ async def get_criterion(criterion_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error retrieving criterion: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/results/{job_analysis_id}")
+async def get_results(job_analysis_id: str, db: Session = Depends(get_db)):
+    try:
+        # Fetch all CVAnalysis for this job_analysis_id, ordered by total_score descending
+        cv_analyses = (
+            db.query(models.CVAnalysis)
+            .filter(models.CVAnalysis.job_analysis_id == job_analysis_id)
+            .order_by(models.CVAnalysis.total_score.desc())
+            .all()
+        )
+        candidates = []
+        for idx, cv in enumerate(cv_analyses):
+            # Fetch all CVScore for this CVAnalysis
+            scores = db.query(models.CVScore).filter(models.CVScore.cv_analysis_id == cv.id).all()
+            # For each score, get the criterion name
+            score_list = []
+            for score in scores:
+                # Join to get criterion name
+                job_analysis_criterion = db.query(models.JobAnalysisCriterion).filter(models.JobAnalysisCriterion.id == score.job_analysis_criterion_id).first()
+                criterion = db.query(models.Criterion).filter(models.Criterion.id == job_analysis_criterion.criterion_id).first() if job_analysis_criterion else None
+                score_list.append({
+                    "criterion": criterion.name if criterion else "Unknown",
+                    "score": round(score.score, 1)
+                })
+            candidates.append({
+                "index": idx + 1,  # 1-based index for rank
+                "filename": cv.filename,
+                "candidate_name": cv.candidate_name,
+                "summary": cv.summary,
+                "total_score": round(cv.total_score, 1) if cv.total_score is not None else None,
+                "scores": score_list
+            })
+        return {"candidates": candidates}
+    except Exception as e:
+        logger.error(f"Error retrieving results: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving results: {str(e)}")
 
 # @app.post("/stream")
 # async def stream():
