@@ -4,11 +4,15 @@ from datetime import datetime
 import json
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, UploadFile, Form, File
-from typing import List
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
+from typing import List, Annotated
 from fastapi.middleware.cors import CORSMiddleware
 from services.llm_service import get_llm_service
 from services.ocr_services import OCRService
+from pydantic import BaseModel
+from database import engine, SessionLocal
+from sqlalchemy.orm import Session
+import models
 #from services.pdf_service import PDFService
 
 # Configure logging
@@ -34,9 +38,14 @@ except Exception as e:
     logger.error(f"Failed to initialize LLM service: {str(e)}")
     raise
 
+
+
 # Initialize FastAPI
 app = FastAPI()
 logger.info("FastAPI application initialized")
+
+models.Base.metadata.create_all(bind=engine)
+logger.info("Created db tables")
 
 # Add CORS middleware
 app.add_middleware(
@@ -47,6 +56,183 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 logger.info("CORS middleware configured")
+
+def get_db():
+    logger.info("Creating new database session")
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        logger.info("Closing database session")
+        db.close()
+
+db_dependency = Annotated[Session, Depends(get_db)]
+
+def compute_weighted_total(scores, parsed_criteria):
+    """
+    Compute the weighted total score (0-10 scale) given a list of scores and the criteria with weights.
+    """
+    weighted_sum = 0.0
+    total_weight = 0.0
+    # Map criterion_id to weight for quick lookup
+    id_to_weight = {int(c["id"]): float(c["weight"]) for c in parsed_criteria}
+    for score in scores:
+        criterion_id = int(score["criterion_id"])
+        weight = id_to_weight.get(criterion_id, 0.0)
+        score_value = round(float(score["score"]), 1)
+        weighted_sum += score_value * weight
+        total_weight += weight
+    total_score = weighted_sum / total_weight if total_weight > 0 else 0.0
+    total_score = round(total_score, 1)
+    if total_score > 10:
+        total_score = 10.0
+    return total_score
+
+@app.post("/analyze-cvs")
+async def analyze_cvs(
+    files: List[UploadFile] = File(...),
+    criteria: str = Form(...),
+    prompt: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    try:
+        # Validation and parsing
+        if not files:
+            raise HTTPException(status_code=400, detail="No files provided")
+        if not criteria:
+            raise HTTPException(status_code=400, detail="No criteria provided")
+        if not prompt:
+            raise HTTPException(status_code=400, detail="No prompt (job description) provided")
+
+        try:
+            parsed_criteria = json.loads(criteria)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail="Invalid criteria JSON")
+
+        try:
+            parsed_prompt = json.loads(prompt)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail="Invalid prompt JSON")
+
+        logger.info(f"parsed_criteria: {parsed_criteria} (type: {type(parsed_criteria)})")
+        for i, criterion in enumerate(parsed_criteria):
+            logger.info(f"criterion[{i}]: {criterion} (type: {type(criterion)})")
+
+        # Create JobAnalysis record
+        job_analysis = models.JobAnalysis(
+            prompt=parsed_prompt["job_description"]
+        )
+        db.add(job_analysis)
+        db.flush()  # To get the ID
+
+        # Create JobAnalysisCriterion records
+        job_analysis_criteria_objs = []
+        for criterion in parsed_criteria:
+            criterion_id = criterion["id"]
+            weight = criterion["weight"]
+            logger.info(f"Adding JobAnalysisCriterion: job_analysis_id={job_analysis.id} (type: {type(job_analysis.id)}), criterion_id={criterion_id} (type: {type(criterion_id)}), weight={weight} (type: {type(weight)})")
+            job_criterion = models.JobAnalysisCriterion(
+                job_analysis_id=job_analysis.id,
+                criterion_id=criterion_id,
+                weight=weight
+            )
+            db.add(job_criterion)
+            job_analysis_criteria_objs.append(job_criterion)
+        db.flush()
+
+        # Build a mapping from criterion_id to job_analysis_criteria.id (PK)
+        job_analysis_criteria_map = {jc.criterion_id: jc.id for jc in db.query(models.JobAnalysisCriterion).filter(models.JobAnalysisCriterion.job_analysis_id == job_analysis.id).all()}
+
+        ocr_service = OCRService()
+        cv_contents = []
+        for file in files:
+            if not file.filename.lower().endswith(".pdf") or file.content_type != "application/pdf":
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"File '{file.filename}' is not a valid PDF"
+                )
+            parsed_content = await ocr_service.parse_document(file)
+            combined_markdown = parsed_content.get("markdown_content", "")
+            cv_contents.append({
+                "filename": file.filename,
+                "content": combined_markdown
+            })
+
+        results = await ocr_service.analyze_cvs(
+            cv_contents,
+            parsed_criteria,
+            parsed_prompt["job_description"]
+        )
+
+        # Convert scores from dict keyed by name to list of dicts with criterion_id
+        name_to_id = {str(c['name']): int(c['id']) for c in parsed_criteria}
+        for result in results:
+            scores = result.get("scores", {})
+            if isinstance(scores, dict):
+                result["scores"] = [
+                    {
+                        "criterion_id": name_to_id.get(name, None),
+                        "score": round(float(score_obj["score"]), 1),
+                        "explanation": score_obj.get("explanation", "")
+                    }
+                    for name, score_obj in scores.items()
+                    if name in name_to_id
+                ]
+
+        # Save CV analysis results
+        for result in results:
+            logger.info(f"result: {result}")
+            total_score = compute_weighted_total(result.get("scores", []), parsed_criteria)
+            logger.info(f"Calculated total_score: {total_score}")
+            cv_analysis = models.CVAnalysis(
+                job_analysis_id=job_analysis.id,
+                filename=result["filename"],
+                candidate_name=result.get("candidate_name", "Unknown"),
+                summary=result.get("summary", ""),
+                total_score=total_score
+            )
+            db.add(cv_analysis)
+            db.flush()
+
+            # Save individual criterion scores
+            for score in result.get("scores", []):
+                logger.info(f"score: {score} (type: {type(score)})")
+                criterion_id = score["criterion_id"]
+                job_analysis_criterion_id = job_analysis_criteria_map.get(criterion_id)
+                if job_analysis_criterion_id is None:
+                    logger.error(f"No JobAnalysisCriterion found for criterion_id={criterion_id}")
+                    continue
+                score_value = round(float(score["score"]), 1)
+                cv_score = models.CVScore(
+                    cv_analysis_id=cv_analysis.id,
+                    job_analysis_criterion_id=job_analysis_criterion_id,
+                    score=score_value,
+                    explanation=score.get("explanation", "")
+                )
+                db.add(cv_score)
+
+        db.commit()
+
+        return {
+            "status": "success",
+            "results": results,
+            "job_analysis_id": str(job_analysis.id)
+        }
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error analyzing CVs: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error analyzing CVs: {str(e)}")
+
+@app.get("/criteria/{criterion_id}")
+async def get_criterion(criterion_id: int, db: Session = Depends(get_db)):
+    try:
+        criterion = db.query(models.Criterion).filter(models.Criterion.id == criterion_id).first()
+        if not criterion:
+            raise HTTPException(status_code=404, detail=f"Criterion with id {criterion_id} not found")
+        return criterion
+    except Exception as e:
+        logger.error(f"Error retrieving criterion: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # @app.post("/stream")
 # async def stream():
@@ -287,58 +473,7 @@ logger.info("CORS middleware configured")
 #         logger.error(f"Error in rank-cvs endpoint: {str(e)}")
 #         raise HTTPException(status_code=500, detail=f"Error ranking CVs: {str(e)}")
 
-@app.post("/analyze-cvs")
-async def analyze_cvs(
-    files: List[UploadFile] = File(...),
-    criteria: str = Form(...),
-    prompt: str = Form(None)
-):
-    try:
-        # Validation and parsing (same as before)
-        if not files:
-            raise HTTPException(status_code=400, detail="No files provided")
-        if not criteria:
-            raise HTTPException(status_code=400, detail="No criteria provided")
-        if not prompt:
-            raise HTTPException(status_code=400, detail="No prompt (job description) provided")
 
-        try:
-            parsed_criteria = json.loads(criteria)
-        except Exception as e:
-            raise HTTPException(status_code=400, detail="Invalid criteria JSON")
-
-        try:
-            parsed_prompt = json.loads(prompt)
-        except Exception as e:
-            raise HTTPException(status_code=400, detail="Invalid prompt JSON")
-
-        ocr_service = OCRService()
-        cv_contents = []
-        for file in files:
-            if not file.filename.lower().endswith(".pdf") or file.content_type != "application/pdf":
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"File '{file.filename}' is not a valid PDF"
-                )
-            parsed_content = await ocr_service.parse_document(file)
-            combined_markdown = parsed_content.get("markdown_content", "")
-            cv_contents.append({
-                "filename": file.filename,
-                "content": combined_markdown
-            })
-
-        results = await ocr_service.analyze_cvs(
-            cv_contents,
-            parsed_criteria,
-            parsed_prompt["job_description"]
-        )
-
-        return {
-            "status": "success",
-            "results": results
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error analyzing CVs: {str(e)}")
 
 #@app.post("/convert-pdf-to-images")
 #async def convert_pdf_to_images(file: UploadFile = File(...), dpi: int = 200):

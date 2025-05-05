@@ -15,6 +15,7 @@ import { useState } from "react";
 import MetricsPopup from "./metrics-popup";
 import { criteria } from "@/lib/data";
 import { mergeCriteriaWeights } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 export function AppSidebar() {
   const [files, setFiles] = useState<File[]>([]);
@@ -29,6 +30,8 @@ export function AppSidebar() {
       criteria.map((c) => [c.name, Math.round(c.weight * 100)])
     )
   );
+
+  const router = useRouter();
 
   // Call the /analyze-cvs endpoint with files and merged criteria
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,7 +54,7 @@ export function AppSidebar() {
       }
       const data = await response.json();
       console.log("Analyze CVs response:", data);
-      setResult(data);
+      router.push("/results");
     } catch (err) {
       setError((err as Error).message);
     } finally {
