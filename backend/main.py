@@ -66,6 +66,19 @@ def get_db():
         logger.info("Closing database session")
         db.close()
 
+def to_pascal_case(name: str) -> str:
+    """
+    Convert a string to Pascal case, handling all types of input casing.
+    Examples: 
+    - "john doe" -> "John Doe"
+    - "JOHN DOE" -> "John Doe"
+    - "jOhN dOe" -> "John Doe"
+    - "John Doe" -> "John Doe"
+    """
+    if not name or name == "N/A":
+        return name
+    return " ".join(word.capitalize() for word in name.lower().split())
+
 db_dependency = Annotated[Session, Depends(get_db)]
 
 def compute_weighted_total(scores, parsed_criteria):
@@ -187,7 +200,7 @@ async def analyze_cvs(
             cv_analysis = models.CVAnalysis(
                 job_analysis_id=job_analysis.id,
                 filename=result["filename"],
-                candidate_name=result.get("candidate", "Unknown"),
+                candidate_name=to_pascal_case(result.get("candidate", "Unknown")),
                 summary=result.get("summary", ""),
                 total_score=total_score
             )

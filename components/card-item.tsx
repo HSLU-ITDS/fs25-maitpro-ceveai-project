@@ -24,7 +24,7 @@ const CardItem = ({
       <Icons>
         <Icon className="w-5 h-5" />
       </Icons>
-      <div>
+      <div className="flex flex-col">
         <h1
           className={`font-bold ${
             size === "large" ? "text-sm" : "text-xs"

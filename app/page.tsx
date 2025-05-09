@@ -27,28 +27,28 @@ const Landing = () => {
 
   const getStartedSteps = [
     {
-      title: "Define Requirements",
+      title: "Define Job Requirements and Specifications",
       description:
         "Define your job requirements and specifications in the sidebar",
     },
     {
-      title: "Upload CVs",
+      title: "Upload pool of CVs to be analyzed",
       description: "Upload candidate CVs for analysis",
     },
     {
-      title: "Adjust Metrics",
+      title: "Adjust and add metrics to your preference",
       description: "Adjust metrics & weighting as needed",
     },
     {
-      title: "Review Results",
+      title: "Review and compare detailed overall and individual results",
       description: "Evaluate and review the AI-powered results",
     },
   ];
 
   return (
-    <div className="flex flex-row h-full px-3">
+    <div className="flex flex-row h-full ">
       <div className="flex-8/12 flex flex-col px-6 space-y-6">
-        <h1 className="text-6xl/18 font-extrabold text-primary">
+        <h1 className="text-5xl font-extrabold text-primary ">
           Smarter <span className="text-muted-foreground">Hiring</span> <br />{" "}
           Starts with <br /> Smarter{" "}
           <span className="text-muted-foreground">Sreening</span>
@@ -142,12 +142,12 @@ const Landing = () => {
             <div>
               <h1 className="text-primary font-bold">Why CEVEAI?</h1>
             </div>
-            <div className="grid grid-row-2 gap-6">
+            <div className="grid grid-row-2 gap-8">
               <div className="row-span-1 h-12 grid grid-cols-2 gap-3">
                 <CardItem
                   icon={Zap}
                   title="Faster Screening"
-                  description="Quickly analyze multiple resumes"
+                  description="Quickly analyze resumes"
                 />
                 <CardItem
                   icon={Target}
@@ -163,7 +163,7 @@ const Landing = () => {
                 />
                 <CardItem
                   icon={MessageSquareText}
-                  title="Deeper Insights"
+                  title="Deep Insights"
                   description="Beyond keyword matching"
                 />
               </div>

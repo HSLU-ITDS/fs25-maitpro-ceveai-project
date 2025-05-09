@@ -28,7 +28,7 @@ const ResultsPage = ({ data }: ResultsPageProps) => {
   const [selected, setSelected] = useState<Candidate>(data.candidates[0]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1 h-full min-h-0">
       <div className="mx-10 flex-1 flex flex-col space-y-6">
         <div className="h-full flex-5/12">
           <ResultsTable
