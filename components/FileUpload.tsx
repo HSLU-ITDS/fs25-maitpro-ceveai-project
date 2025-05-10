@@ -37,12 +37,9 @@ export function FileUploader({
       />
 
       {selectedFiles.length > 1 && (
-        <div
-          className="w-full border rounded-md overflow-y-scroll mt-2 max-h-32"
-          // style={{ maxHeight: "10rem" }}
-        >
+        <div className="w-full border rounded-md overflow-y-scroll mt-2 max-h-30 text-muted-foreground">
           {selectedFiles.map((file, index) => (
-            <div key={index} className="text-sm py-1 px-2 truncate">
+            <div key={index} className="text-sm py-0.5 px-2 truncate">
               {file.name}
             </div>
           ))}

@@ -48,7 +48,7 @@ const Landing = () => {
   return (
     <div className="flex flex-row h-full ">
       <div className="flex-8/12 flex flex-col px-6 space-y-6">
-        <h1 className="text-5xl font-extrabold text-primary ">
+        <h1 className="text-5xl/16 font-extrabold text-primary">
           Smarter <span className="text-muted-foreground">Hiring</span> <br />{" "}
           Starts with <br /> Smarter{" "}
           <span className="text-muted-foreground">Sreening</span>
@@ -103,7 +103,7 @@ const Landing = () => {
         </div>
       </div>
 
-      <div className="flex-5/12 flex items-center">
+      <div className="flex-5/12 flex items-center pr-4">
         <Card className="px-4 py-6 ">
           <div className="flex flex-col space-y-4">
             <h1 className="font- text-primary font-bold">How CEVEAI Works</h1>

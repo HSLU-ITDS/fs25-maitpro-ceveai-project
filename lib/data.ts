@@ -17,7 +17,6 @@ export interface Scores {
 export interface Criteria {
   id: number;
   name: string;
-  weight: number;
   description: string;
 }
 
@@ -118,50 +117,5 @@ export const scores: Scores[] = [
     Grammar: "9.0",
     Experience: "9.0",
     Cohesiveness: "9.0",
-  },
-];
-
-export const criteria: Criteria[] = [
-  {
-    id: 2,
-    name: "Relevance",
-    weight: 0.3,
-    description:
-      "Evaluate how well the candidate's experience and skills align with the job requirements. Consider the match between their background and the role's key responsibilities and qualifications.",
-  },
-  {
-    id: 3,
-    name: "Experience",
-    weight: 0.25,
-    description:
-      "Assess the depth and breadth of the candidate's professional experience. Consider the duration, progression, and relevance of their work history to the position.",
-  },
-  {
-    id: 4,
-    name: "Conciseness",
-    weight: 0.15,
-    description:
-      "Evaluate how effectively the candidate communicates their qualifications without unnecessary details. Consider the clarity and efficiency of their presentation.",
-  },
-  {
-    id: 5,
-    name: "Engagement",
-    weight: 0.1,
-    description:
-      "Assess how compelling and engaging the candidate's presentation is. Consider the use of action verbs, achievements, and the overall impact of their narrative.",
-  },
-  {
-    id: 6,
-    name: "Cohesiveness",
-    weight: 0.1,
-    description:
-      "Evaluate how well the different sections of the candidate's profile flow together. Consider the logical progression and consistency of their career story.",
-  },
-  {
-    id: 1,
-    name: "Grammar",
-    weight: 0.1,
-    description:
-      "Assess the technical quality of the writing. Consider spelling, grammar, punctuation, and overall language proficiency.",
   },
 ];

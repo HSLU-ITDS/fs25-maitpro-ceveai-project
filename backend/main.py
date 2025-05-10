@@ -7,15 +7,15 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
 from typing import List, Annotated
 from fastapi.middleware.cors import CORSMiddleware
-from services.llm_service import get_llm_service
-from services.ocr_services import OCRService
+from .services.llm_service import get_llm_service
+from .services.ocr_services import OCRService
 from pydantic import BaseModel
-from database import engine, SessionLocal
+from .database import engine, SessionLocal
 from sqlalchemy.orm import Session
-import models
+from . import models
+from backend.schemas import CriterionCreate, CriterionOut
 #from services.pdf_service import PDFService
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -283,6 +283,36 @@ async def get_results(job_analysis_id: str, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error retrieving results: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error retrieving results: {str(e)}")
+
+@app.get("/criteria")
+async def get_all_criteria(db: Session = Depends(get_db)):
+    try:
+        criteria = db.query(models.Criterion).all()
+        return {
+            "status": "success",
+            "criteria": [
+                {
+                    "id": c.id,
+                    "name": c.name,
+                    "description": c.description
+                } for c in criteria
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving criteria: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/criteria", response_model=CriterionOut)
+async def create_criterion(criterion: CriterionCreate, db: Session = Depends(get_db)):
+    # Check for duplicate name
+    existing = db.query(models.Criterion).filter(models.Criterion.name == criterion.name).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Criterion with this name already exists.")
+    new_criterion = models.Criterion(name=criterion.name, description=criterion.description)
+    db.add(new_criterion)
+    db.commit()
+    db.refresh(new_criterion)
+    return new_criterion
 
 # @app.post("/stream")
 # async def stream():

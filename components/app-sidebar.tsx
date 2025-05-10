@@ -11,11 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { FileUploader } from "@/components/FileUpload";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MetricsPopup from "./metrics-popup";
-import { criteria } from "@/lib/data";
-import { mergeCriteriaWeights } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { mergeCriteriaWeights } from "@/lib/utils";
+import { Criteria } from "@/lib/data";
 
 export function AppSidebar() {
   const [files, setFiles] = useState<File[]>([]);
@@ -23,23 +23,27 @@ export function AppSidebar() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null); // optionally type this later
-  const [criteriaWeights, setCriteriaWeights] = useState<{
-    [key: string]: number;
-  }>(() =>
-    Object.fromEntries(
-      criteria.map((c) => [c.name, Math.round(c.weight * 100)])
-    )
-  );
+  const [criteria, setCriteria] = useState<Criteria[]>([]);
+
+  // Fetch criteria from backend
+  const fetchCriteria = async () => {
+    const response = await fetch("http://localhost:8000/criteria");
+    const data = await response.json();
+    setCriteria(data.criteria);
+  };
+
+  useEffect(() => {
+    fetchCriteria();
+  }, []);
 
   const router = useRouter();
 
-  // Call the /analyze-cvs endpoint with files and merged criteria
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setResult(null);
-    const adjustedCriteria = mergeCriteriaWeights(criteria, criteriaWeights);
+    const adjustedCriteria = mergeCriteriaWeights(criteria, {});
     const formData = new FormData();
     files.forEach((file) => formData.append("files", file));
     formData.append("criteria", JSON.stringify(adjustedCriteria));
@@ -92,17 +96,18 @@ export function AppSidebar() {
                 placeholder="Type your message here."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                className="h-10 max-h-16 overflow-auto resize-none"
+                className="min-h-36 max-h-50 overflow-auto resize-none"
               />
             </div>
           </SidebarGroup>
 
-          <SidebarGroup className="">
-            <MetricsPopup
-              values={criteriaWeights}
-              setValues={setCriteriaWeights}
-            />
-            <Button type="submit" disabled={loading || files.length === 0}>
+          <SidebarGroup className="flex flex-col space-y-2">
+            <MetricsPopup criteria={criteria} refetchCriteria={fetchCriteria} />
+            <Button
+              type="submit"
+              disabled={loading || files.length === 0}
+              className="bg-foreground"
+            >
               {loading ? "Evaluating..." : "Evaluate"}
             </Button>
             {error && <p className="text-destructive text-sm">{error}</p>}
