@@ -321,22 +321,15 @@ async def analyze_cvs(
                     detail=f"File '{file.filename}' is not a valid PDF"
                 )
             parsed_content = await ocr_service.parse_document(file)
-            combined_markdown = parsed_content.get("markdown_content", "")
-            cv_contents.append({
+
                 "filename": file.filename,
                 "content": combined_markdown
             })
 
-        results = await ocr_service.analyze_cvs(
-            cv_contents,
-            parsed_criteria,
-            parsed_prompt["job_description"]
-        )
-
-        return {
             "status": "success",
             "results": results
         }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error analyzing CVs: {str(e)}")
 
