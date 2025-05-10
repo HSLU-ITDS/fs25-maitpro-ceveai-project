@@ -194,6 +194,7 @@ Evaluation Guidelines:
    - 0: Completely missing or irrelevant
    - 5: Meets basic requirements
    - 10: Exceeds expectations significantly
+   - When assigning scores, consider the full range of decimal values (e.g., 7.2, 8.3, 6.7, etc.) to best reflect nuanced differences in candidate performance.
 
 2. Objectivity Requirements:
    - Base scores on concrete evidence from the CV
@@ -205,8 +206,9 @@ Evaluation Guidelines:
    - For non-job-specific criteria (e.g., grammar), maintain objective standards
 
 4. Response Format:
-   - Each criterion must have a score (0-10 with one decimal point) and brief reasoning
-   - The summary should highlight key qualifications
+   - Each criterion must have a score (0-10 with one decimal point) and reasoning
+   - The detailed summary should highlight key qualifications
+   - The detailed summary should be around 200-300 words and structured as 2 paragraphs.
    - Maintain the exact JSON structure provided in the user prompt
 """
 
@@ -214,9 +216,9 @@ Evaluation Guidelines:
             user_prompt = f"""CV Content:
 {cv['content']}
 
-First, extract the candidate's full name from the CV. Then provide your analysis in the following format:
+First, extract the candidate's full name from the CV. If the name is not specified, use 'N/A'. Then provide your analysis in the following format:
 {{
-    "candidate": "<full name from CV>",
+    "candidate": "<full name from CV or N/A>",
     "scores": {{
         "criterion1": {{
             "score": <number with one decimal point>,
@@ -227,7 +229,7 @@ First, extract the candidate's full name from the CV. Then provide your analysis
             "explanation": "<brief reasoning for the score>"
         }}
     }},
-    "summary": "<brief summary of key qualifications>"
+    "summary": "<2 paragraph detailed summary of key qualifications>"
 }}
 """
 

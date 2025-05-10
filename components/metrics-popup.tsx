@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "./ui/dialog";
 
 interface MetricsPopupProps {
@@ -138,6 +139,10 @@ const MetricsPopup = ({ values, setValues }: MetricsPopupProps) => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="hidden">Adjust Criteria</DialogTitle>
+            <DialogDescription>
+              Make adjustments on metrics weights and modify/add criteria
+            </DialogDescription>
+
             <Input
               placeholder='Add existing criteria or enter a new one using "/" as prefix'
               value={title}

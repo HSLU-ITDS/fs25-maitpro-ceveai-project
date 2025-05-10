@@ -15,11 +15,13 @@ export function cn(...inputs: ClassValue[]) {
 export function mergeCriteriaWeights(
   criteria: Criteria[],
   weights: { [key: string]: number }
-): { name: string; description: string }[] {
+): { id: number; name: string; description: string; weight: number }[] {
   return criteria
     .filter((c) => (weights[c.name] ?? Math.round(c.weight * 100)) > 0)
     .map((c) => ({
+      id: c.id,
       name: c.name,
       description: c.description,
+      weight: (weights[c.name] ?? Math.round(c.weight * 100)) / 100,
     }));
 }

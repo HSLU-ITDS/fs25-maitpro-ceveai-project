@@ -9,9 +9,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import React from "react";
-import { scores } from "@/lib/data";
 
-export function IndivScore() {
+export type CandidateScore = {
+  criterion: string;
+  score: number;
+};
+
+export function IndivScore({ scores }: { scores: CandidateScore[] }) {
   return (
     <div className="w-full">
       <div className="max-h-[300px] overflow-y-auto border border-border rounded-md">
@@ -28,32 +32,23 @@ export function IndivScore() {
           </TableHeader>
 
           <TableBody>
-            {scores.map((score, index) => (
-              <React.Fragment key={index}>
-                {[
-                  { label: "Relevance", value: score.Relevance },
-                  { label: "Grammar", value: score.Grammar },
-                  { label: "Experience", value: score.Experience },
-                  { label: "Cohesiveness", value: score.Cohesiveness },
-                ].map((item, subIndex) => {
-                  const isEven = (index * 4 + subIndex) % 2 === 0;
-                  const baseBg = isEven ? "bg-muted" : "bg-background";
-                  const hoverBg = isEven
-                    ? "hover:bg-muted hover:font-normal text-primary"
-                    : "hover:bg-background hover:font-normal text-primary";
+            {scores.map((item, index) => {
+              const isEven = index % 2 === 0;
+              const baseBg = isEven ? "bg-muted" : "bg-background";
+              const hoverBg = isEven
+                ? "hover:bg-muted hover:font-normal text-primary"
+                : "hover:bg-background hover:font-normal text-primary";
 
-                  return (
-                    <TableRow
-                      key={`${item.label}-${index}`}
-                      className={`${baseBg} ${hoverBg}`}
-                    >
-                      <TableCell>{item.label}</TableCell>
-                      <TableCell>{item.value}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </React.Fragment>
-            ))}
+              return (
+                <TableRow
+                  key={`${item.criterion}-${index}`}
+                  className={`${baseBg} ${hoverBg}`}
+                >
+                  <TableCell>{item.criterion}</TableCell>
+                  <TableCell>{item.score}</TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>

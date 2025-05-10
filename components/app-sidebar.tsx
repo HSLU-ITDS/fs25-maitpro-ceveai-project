@@ -14,6 +14,10 @@ import { FileUploader } from "@/components/FileUpload";
 import { useState } from "react";
 import MetricsPopup from "./metrics-popup";
 
+import { criteria } from "@/lib/data";
+import { mergeCriteriaWeights } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+
 
 export function AppSidebar() {
   const [files, setFiles] = useState<File[]>([]);
@@ -21,6 +25,8 @@ export function AppSidebar() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+
+  const router = useRouter();
 
   // Call the /analyze-cvs endpoint with files and merged criteria
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,6 +40,17 @@ export function AppSidebar() {
     formData.append("criteria", JSON.stringify(adjustedCriteria));
     formData.append("prompt", JSON.stringify({ job_description: prompt }));
     try {
+
+      const response = await fetch("http://localhost:8000/analyze-cvs", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error(`Request failed: ${response.statusText}`);
+      }
+      const data = await response.json();
+      const jobAnalysisId = data.job_analysis_id;
+      router.push(`/results/${jobAnalysisId}`);
 
     } catch (err) {
       console.error("Evaluation error:", err);
@@ -91,6 +108,7 @@ export function AppSidebar() {
                 placeholder="Enter your evaluation criteria for PDFs or images..."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
+                className="h-10 max-h-16 overflow-auto resize-none"
               />
             </div>
           </SidebarGroup>
