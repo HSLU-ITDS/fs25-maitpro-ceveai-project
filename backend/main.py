@@ -554,6 +554,52 @@ async def create_criterion(criterion: CriterionCreate, db: Session = Depends(get
 #         raise HTTPException(status_code=500, detail=f"Error ranking CVs: {str(e)}")
 
 
+@app.post("/analyze-cvs")
+async def analyze_cvs(
+    files: List[UploadFile] = File(...),
+    criteria: str = Form(...),
+    prompt: str = Form(None)
+):
+    try:
+        # Validation and parsing (same as before)
+        if not files:
+            raise HTTPException(status_code=400, detail="No files provided")
+        if not criteria:
+            raise HTTPException(status_code=400, detail="No criteria provided")
+        if not prompt:
+            raise HTTPException(status_code=400, detail="No prompt (job description) provided")
+
+        try:
+            parsed_criteria = json.loads(criteria)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail="Invalid criteria JSON")
+
+        try:
+            parsed_prompt = json.loads(prompt)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail="Invalid prompt JSON")
+
+        ocr_service = OCRService()
+        cv_contents = []
+        for file in files:
+            if not file.filename.lower().endswith(".pdf") or file.content_type != "application/pdf":
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"File '{file.filename}' is not a valid PDF"
+                )
+            parsed_content = await ocr_service.parse_document(file)
+
+                "filename": file.filename,
+                "content": combined_markdown
+            })
+
+            "status": "success",
+            "results": results
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error analyzing CVs: {str(e)}")
+
 
 #@app.post("/convert-pdf-to-images")
 #async def convert_pdf_to_images(file: UploadFile = File(...), dpi: int = 200):
