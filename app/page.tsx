@@ -86,7 +86,7 @@ const Landing = () => {
               <div className="grid grid-cols-12 gap-3 ">
                 <div className="col-span-4 flex items-center gap-2">
                   <Server className="w-8 h-8" />
-                  <h1 className="text-sm font-semibold">
+                  <h1 className="text-sm font-semibold  text-primary">
                     Self-host option available:
                   </h1>
                 </div>

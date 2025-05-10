@@ -42,8 +42,8 @@ export default function RootLayout({
             <AppSidebar />
             <div className="flex-1 flex flex-col h-screen">
               <Header />
-              <main className="flex-1 overflow-hidden">
-                <div className="h-full overflow-auto">{children}</div>
+              <main className="flex-1">
+                <div className="h-full overflow-hidden">{children}</div>
               </main>
               <Footer />
             </div>

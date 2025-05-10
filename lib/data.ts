@@ -14,11 +14,10 @@ export interface Scores {
   Cohesiveness: string;
 }
 
-export interface Metric {
+export interface Criteria {
   name: string;
-  min: number;
-  max: number;
-  defaultValue: number;
+  weight: number;
+  description: string;
 }
 
 export const candidates: Candidate[] = [
@@ -121,41 +120,41 @@ export const scores: Scores[] = [
   },
 ];
 
-export const metrics: Metric[] = [
+export const criteria: Criteria[] = [
   {
     name: "Relevance",
-    min: 0,
-    max: 100,
-    defaultValue: 0,
+    weight: 0.3,
+    description:
+      "Evaluate how well the candidate's experience and skills align with the job requirements. Consider the match between their background and the role's key responsibilities and qualifications.",
   },
   {
     name: "Experience",
-    min: 0,
-    max: 100,
-    defaultValue: 0,
+    weight: 0.25,
+    description:
+      "Assess the depth and breadth of the candidate's professional experience. Consider the duration, progression, and relevance of their work history to the position.",
   },
   {
     name: "Conciseness",
-    min: 0,
-    max: 100,
-    defaultValue: 0,
+    weight: 0.15,
+    description:
+      "Evaluate how effectively the candidate communicates their qualifications without unnecessary details. Consider the clarity and efficiency of their presentation.",
   },
   {
     name: "Engagement",
-    min: 0,
-    max: 100,
-    defaultValue: 0,
+    weight: 0.1,
+    description:
+      "Assess how compelling and engaging the candidate's presentation is. Consider the use of action verbs, achievements, and the overall impact of their narrative.",
   },
   {
     name: "Cohesiveness",
-    min: 0,
-    max: 100,
-    defaultValue: 0,
+    weight: 0.1,
+    description:
+      "Evaluate how well the different sections of the candidate's profile flow together. Consider the logical progression and consistency of their career story.",
   },
   {
     name: "Grammar",
-    min: 0,
-    max: 100,
-    defaultValue: 0,
+    weight: 0.1,
+    description:
+      "Assess the technical quality of the writing. Consider spelling, grammar, punctuation, and overall language proficiency.",
   },
 ];

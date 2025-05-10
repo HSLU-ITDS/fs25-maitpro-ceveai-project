@@ -1,6 +1,7 @@
 import os
 import logging
 from datetime import datetime
+import json
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, UploadFile, Form, File
@@ -47,168 +48,290 @@ app.add_middleware(
 )
 logger.info("CORS middleware configured")
 
-@app.post("/stream")
-async def stream():
-    try:
-        logger.info("Received stream request")
-        messages = [
-            {
-                "role": "user",
-                "content": "Write a one-sentence bedtime story about a unicorn.",
-            }
-        ]
-        response = llm_service.generate_response(messages)
-        logger.info("Successfully generated response")
-        return {"response": response}
-    except Exception as e:
-        logger.error(f"Error in stream endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+# @app.post("/stream")
+# async def stream():
+#     try:
+#         logger.info("Received stream request")
+#         messages = [
+#             {
+#                 "role": "user",
+#                 "content": "Write a one-sentence bedtime story about a unicorn.",
+#             }
+#         ]
+#         response = llm_service.generate_response(messages)
+#         logger.info("Successfully generated response")
+#         return {"response": response}
+#     except Exception as e:
+#         logger.error(f"Error in stream endpoint: {str(e)}")
+#         raise HTTPException(status_code=500, detail=str(e))
 
+# @app.post("/test-input")
+# async def test_input(
+#     files: List[UploadFile] = File(...),
+#     criteria: str = Form(...),
+#     prompt: str = Form(None)
+# ):
+#     """
+#     Test endpoint to receive PDF files, criteria, and job description, and display them clearly.
+#     """
+#     try:
+#         logger.info(f"Received test-input request with {len(files)} files, criteria: {criteria}, and prompt: {prompt}")
+#         if not files:
+#             logger.warning("No files provided in request")
+#             raise HTTPException(status_code=400, detail="No files provided")
+#         if not criteria:
+#             logger.warning("No criteria provided in request")
+#             raise HTTPException(status_code=400, detail="No criteria provided")
+#         if not prompt:
+#             logger.warning("No prompt (job description) provided in request")
+#             raise HTTPException(status_code=400, detail="No prompt (job description) provided")
 
-@app.post("/test-prompt")
-async def test_prompt(prompt: str = Form(...)):
-    """
-    This endpoint is used to test the LLM service.
-    It will return the response from the LLM given a prompt from the user.
-    """
-    try:
-        logger.info(f"Received test-prompt request with prompt: {prompt}")
-        messages = [
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ]
-        response = llm_service.generate_response(messages)
-        logger.info(response)
-        return {"response": response}
-    except Exception as e:
-        logger.error(f"Error in test-prompt endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+#         # Parse criteria JSON
+#         try:
+#             parsed_criteria = json.loads(criteria)
+#         except Exception as e:
+#             logger.error(f"Failed to parse criteria JSON: {str(e)}")
+#             raise HTTPException(status_code=400, detail="Invalid criteria JSON")
 
+#         # Parse prompt JSON
+#         parsed_prompt = None
+#         if prompt:
+#             try:
+#                 parsed_prompt = json.loads(prompt)
+#             except Exception as e:
+#                 logger.error(f"Failed to parse prompt JSON: {str(e)}")
+#                 raise HTTPException(status_code=400, detail="Invalid prompt JSON")
+
+#         files_info = []
+#         for file in files:
+#             if not file.filename.lower().endswith(".pdf") or file.content_type != "application/pdf":
+#                 logger.warning(f"Invalid file type: {file.filename}")
+#                 raise HTTPException(
+#                     status_code=400,
+#                     detail=f"File '{file.filename}' is not a valid PDF"
+#                 )
+#             content = await file.read()
+#             files_info.append({
+#                 "filename": file.filename,
+#                 "content_type": file.content_type,
+#                 "size": len(content)
+#             })
+#             logger.info(f"Processed file: {file.filename}")
+
+#         logger.info("Successfully processed all files, criteria, and prompt")
+#         # Format the output for best readability
+#         return {
+#             "status": "success",
+#             "message": f"{len(files)} PDF file(s), criteria, and job description received successfully",
+#             "files": [
+#                 {
+#                     "filename": f["filename"],
+#                     "content_type": f["content_type"],
+#                     "size (bytes)": f["size"]
+#                 } for f in files_info
+#             ],
+#             "criteria": [
+#                 {
+#                     "name": c.get("name"),
+#                     "weight": c.get("weight"),
+#                     "description": c.get("description")
+#                 } for c in parsed_criteria
+#             ],
+#             "job_description": parsed_prompt["job_description"] if parsed_prompt and "job_description" in parsed_prompt else None
+#         }
+#     except Exception as e:
+#         logger.error(f"Error in test-input endpoint: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+# @app.post("/upload-preview")
+# async def upload_preview(
+#     files: List[UploadFile] = File(...),
+# ):
+#     """
+#     This endpoint is used to upload a PDF file and return the metadata of the file.
+#     """
+#     try:
+#         logger.info(f"Received upload-preview request with {len(files)} files")
+#         if not files:
+#             logger.warning("No files provided in request")
+#             raise HTTPException(status_code=400, detail="No files provided")
+
+#         files_info = []
+
+#         for file in files:
+#             # Validate file type by extension and content type
+#             if not file.filename.lower().endswith(".pdf") or file.content_type != "application/pdf":
+#                 logger.warning(f"Invalid file type: {file.filename}")
+#                 raise HTTPException(
+#                     status_code=400,
+#                     detail=f"File '{file.filename}' is not a valid PDF"
+#                 )
+
+#             content = await file.read()
+#             files_info.append({
+#                 "filename": file.filename,
+#                 "content_type": file.content_type,
+#                 "size": len(content)
+#             })
+#             logger.info(f"Processed file: {file.filename}")
+
+#         logger.info("Successfully processed all files")
+
+#         return {
+#             "status": "success",
+#             "message": f"{len(files)} PDF file(s) received successfully",
+#             "files": files_info
+#         }
+
+#     except Exception as e:
+#         logger.error(f"Error in upload-preview endpoint: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
     
+# @app.post("/process-cv")
+# async def process_cv(file: UploadFile = File(...)):
+#     try:
+#         logger.info(f"Received CV processing request for file: {file.filename}")
         
-    
-@app.post("/upload-preview")
-async def upload_preview(
+#         # Initialize OCR service
+#         ocr_service = OCRService()
+        
+#         # Process the document using OCR service
+#         result = await ocr_service.parse_document(file)
+        
+#         logger.info(result)
+#         return {
+#             "status": "success",
+#             "result": result
+#         }
+        
+#     except Exception as e:
+#         logger.error(f"Error processing CV: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Error processing CV: {str(e)}")
+
+# @app.post("/rank-cvs")
+# async def rank_cvs(
+#     files: List[UploadFile] = File(...),
+#     criteria: str = Form(...),
+#     prompt: str = Form(None)
+# ):
+#     """
+#     This endpoint receives a list of CVs (PDFs), criteria, and a job description,
+#     processes them, and returns a ranked list of CVs based on how well they match the criteria.
+#     """
+#     try:
+#         logger.info(f"Received rank-cvs request with {len(files)} files, criteria: {criteria}, and prompt: {prompt}")
+        
+#         if not files:
+#             logger.warning("No files provided in request")
+#             raise HTTPException(status_code=400, detail="No files provided")
+#         if not criteria:
+#             logger.warning("No criteria provided in request")
+#             raise HTTPException(status_code=400, detail="No criteria provided")
+#         if not prompt:
+#             logger.warning("No prompt (job description) provided in request")
+#             raise HTTPException(status_code=400, detail="No prompt (job description) provided")
+
+#         # Parse criteria JSON
+#         try:
+#             parsed_criteria = json.loads(criteria)
+#         except Exception as e:
+#             logger.error(f"Failed to parse criteria JSON: {str(e)}")
+#             raise HTTPException(status_code=400, detail="Invalid criteria JSON")
+
+#         # Parse prompt JSON
+#         parsed_prompt = None
+#         if prompt:
+#             try:
+#                 parsed_prompt = json.loads(prompt)
+#             except Exception as e:
+#                 logger.error(f"Failed to parse prompt JSON: {str(e)}")
+#                 raise HTTPException(status_code=400, detail="Invalid prompt JSON")
+
+#         # Initialize OCR service
+#         ocr_service = OCRService()
+
+#         cv_summaries = []
+#         for file in files:
+#             if not file.filename.lower().endswith(".pdf") or file.content_type != "application/pdf":
+#                 logger.warning(f"Invalid file type: {file.filename}")
+#                 raise HTTPException(
+#                     status_code=400,
+#                     detail=f"File '{file.filename}' is not a valid PDF"
+#                 )
+                
+#             parsed_content = await ocr_service.parse_document(file)
+#             combined_markdown = parsed_content.get("markdown_content", "")
+#             logger.info(f"Extracted Markdown for {file.filename}:\n{combined_markdown}")
+            
+#             summary = await ocr_service.summarize_content(
+#                 combined_markdown, 
+#                 parsed_criteria, 
+#                 parsed_prompt["job_description"] if parsed_prompt else None
+#             )
+            
+#             cv_summaries.append({
+#                 "filename": file.filename,
+#                 "summary": summary
+#             })
+
+#         # Rank the CVs based on their summaries
+#         ranked_cvs = await ocr_service.rank_cvs(cv_summaries, parsed_criteria)
+
+#         logger.info("Successfully ranked CVs")
+#         return {
+#             "status": "success",
+#             "ranked_cvs": ranked_cvs
+#         }
+
+#     except Exception as e:
+#         logger.error(f"Error in rank-cvs endpoint: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Error ranking CVs: {str(e)}")
+
+@app.post("/analyze-cvs")
+async def analyze_cvs(
     files: List[UploadFile] = File(...),
+    criteria: str = Form(...),
+    prompt: str = Form(None)
 ):
-    """
-    This endpoint is used to upload a PDF file and return the metadata of the file.
-    """
     try:
-        logger.info(f"Received upload-preview request with {len(files)} files")
+        # Validation and parsing (same as before)
         if not files:
-            logger.warning("No files provided in request")
             raise HTTPException(status_code=400, detail="No files provided")
+        if not criteria:
+            raise HTTPException(status_code=400, detail="No criteria provided")
+        if not prompt:
+            raise HTTPException(status_code=400, detail="No prompt (job description) provided")
 
-        files_info = []
+        try:
+            parsed_criteria = json.loads(criteria)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail="Invalid criteria JSON")
 
+        try:
+            parsed_prompt = json.loads(prompt)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail="Invalid prompt JSON")
+
+        ocr_service = OCRService()
+        cv_contents = []
         for file in files:
-            # Validate file type by extension and content type
             if not file.filename.lower().endswith(".pdf") or file.content_type != "application/pdf":
-                logger.warning(f"Invalid file type: {file.filename}")
                 raise HTTPException(
                     status_code=400,
                     detail=f"File '{file.filename}' is not a valid PDF"
                 )
-
-            content = await file.read()
-            files_info.append({
-                "filename": file.filename,
-                "content_type": file.content_type,
-                "size": len(content)
-            })
-            logger.info(f"Processed file: {file.filename}")
-
-        logger.info("Successfully processed all files")
-
-        return {
-            "status": "success",
-            "message": f"{len(files)} PDF file(s) received successfully",
-            "files": files_info
-        }
-
-    except Exception as e:
-        logger.error(f"Error in upload-preview endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
-    
-@app.post("/process-cv")
-async def process_cv(file: UploadFile = File(...)):
-    try:
-        logger.info(f"Received CV processing request for file: {file.filename}")
-        
-        # Initialize OCR service
-        ocr_service = OCRService()
-        
-        # Process the document using OCR service
-        result = await ocr_service.parse_document(file)
-        
-        logger.info(result)
-        return {
-            "status": "success",
-            "result": result
-        }
-        
-    except Exception as e:
-        logger.error(f"Error processing CV: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error processing CV: {str(e)}")
-
-@app.post("/rank-cvs")
-async def rank_cvs(
-    files: List[UploadFile] = File(...),
-    criteria: List[str] = Form(...)
-):
-    """
-    This endpoint receives a list of CVs and user criteria, processes them,
-    and returns a ranked list of CVs based on how well they match the criteria.
-    """
-    try:
-        logger.info(f"Received rank-cvs request with {len(files)} files and criteria: {criteria}")
-        
-        if not files:
-            logger.warning("No files provided in request")
-            raise HTTPException(status_code=400, detail="No files provided")
-            
-        if not criteria:
-            logger.warning("No criteria provided in request")
-            raise HTTPException(status_code=400, detail="No criteria provided")
-        
-        # Initialize OCR service
-        ocr_service = OCRService()
-        
-        # Process each CV and get their summaries
-        cv_summaries = []
-        for file in files:
-            # Parse the document
             parsed_content = await ocr_service.parse_document(file)
-            
-            # Get the markdown content from the parsed result
-            content = parsed_content.get("markdown_content", "")
-            
-            # Summarize the content against the criteria
-            summary = await ocr_service.summarize_content(content, criteria)
-            #print(summary)
-            
-            cv_summaries.append({
+
                 "filename": file.filename,
-                "summary": summary
+                "content": combined_markdown
             })
-        
-        # Rank the CVs based on their summaries
-        ranked_cvs = await ocr_service.rank_cvs(cv_summaries, criteria)
-        
-        logger.info("Successfully ranked CVs")
-        result = {
+
             "status": "success",
-            "ranked_cvs": ranked_cvs
+            "results": results
         }
-        logger.info(result)
-        return result
-        
+
     except Exception as e:
-        logger.error(f"Error in rank-cvs endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error ranking CVs: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error analyzing CVs: {str(e)}")
 
 #@app.post("/convert-pdf-to-images")
 #async def convert_pdf_to_images(file: UploadFile = File(...), dpi: int = 200):

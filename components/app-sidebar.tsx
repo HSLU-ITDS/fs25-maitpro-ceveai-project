@@ -14,72 +14,27 @@ import { FileUploader } from "@/components/FileUpload";
 import { useState } from "react";
 import MetricsPopup from "./metrics-popup";
 
-// Define the response type for the rank-cvs endpoint
-interface RankCVsResponse {
-  status: string;
-  ranked_cvs: Array<{
-    filename: string;
-    summary: {
-      skills?: string[];
-      experience?: string[];
-      education?: string[];
-      overall_match?: string;
-      [key: string]: unknown;
-    };
-    score?: number;
-  }>;
-}
-
-async function evaluateFiles(files: File[], prompt: string) {
-  const formData = new FormData();
-  files.forEach((file) => formData.append("files", file));
-
-  // The backend expects criteria as a List[str]
-  // In FastAPI, to send a list via FormData, we need to append the same key multiple times
-  // For now, we're just sending a single criteria item (the prompt)
-  formData.append("criteria", prompt);
-
-  const response = await fetch("http://localhost:8000/rank-cvs", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    // Create error with response attached for more details
-    const error = new Error(
-      `Evaluation failed: ${response.statusText}`
-    ) as Error & { cause: Response };
-    error.cause = response;
-    throw error;
-  }
-
-  return (await response.json()) as RankCVsResponse;
-}
 
 export function AppSidebar() {
   const [files, setFiles] = useState<File[]>([]);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<RankCVsResponse | null>(null);
 
+
+  // Call the /analyze-cvs endpoint with files and merged criteria
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setResult(null);
-
+    const adjustedCriteria = mergeCriteriaWeights(criteria, criteriaWeights);
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+    formData.append("criteria", JSON.stringify(adjustedCriteria));
+    formData.append("prompt", JSON.stringify({ job_description: prompt }));
     try {
-      if (!prompt.trim()) {
-        throw new Error("Please enter criteria for evaluating the CVs");
-      }
 
-      const data = await evaluateFiles(files, prompt);
-      setResult(data);
-      // Don't clear files and prompt so user can see what they submitted
     } catch (err) {
       console.error("Evaluation error:", err);
       let errorMessage = "An error occurred while evaluating the CVs";
@@ -129,7 +84,7 @@ export function AppSidebar() {
           <SidebarGroup>
             <div className="grid gap-1.5">
               <Label htmlFor="message" className="text-sm">
-                Prompt
+                Job Description
               </Label>
               <Textarea
                 id="message"
@@ -141,28 +96,15 @@ export function AppSidebar() {
           </SidebarGroup>
 
           <SidebarGroup className="">
-            {" "}
-            <MetricsPopup />
+            <MetricsPopup
+              values={criteriaWeights}
+              setValues={setCriteriaWeights}
+            />
             <Button type="submit" disabled={loading || files.length === 0}>
               {loading ? "Evaluating..." : "Evaluate"}
             </Button>
             {error && <p className="text-destructive text-sm">{error}</p>}
-            {result && (
-              <div className="mt-2 p-2 border rounded text-sm">
-                <p className="text-green-600">✓ Successfully ranked CVs</p>
-                <div className="mt-2">
-                  <p className="font-semibold">Ranked CV Results:</p>
-                  <ul className="mt-1 space-y-1">
-                    {result.ranked_cvs.map((cv, index) => (
-                      <li key={index} className="text-xs">
-                        {index + 1}. {cv.filename}
-                        {cv.score && <span className="ml-1">({cv.score})</span>}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
+
           </SidebarGroup>
         </form>
       </SidebarContent>
