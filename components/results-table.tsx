@@ -110,7 +110,6 @@ export function ResultsTable({
         <div
           onClick={() => setExpanded(!expanded)}
           className="absolute top-0 -right-4 w-4 bg-accent hover:bg-muted-foreground transition-colors flex items-center justify-center cursor-pointer border-l z-20"
-          style={{ height: "300px" }}
           aria-label={expanded ? "Collapse table" : "Expand table"}
           role="button"
           tabIndex={0}
