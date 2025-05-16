@@ -4,7 +4,7 @@ from datetime import datetime
 import json
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends, Request
 from typing import List, Annotated
 from fastapi.middleware.cors import CORSMiddleware
 from .services.llm_service import get_llm_service
@@ -14,6 +14,8 @@ from .database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from . import models
 from backend.schemas import CriterionCreate, CriterionOut
+from fastapi.responses import StreamingResponse
+from .services.generatePDF import create_candidates_pdf
 #from services.pdf_service import PDFService
 
 logging.basicConfig(
@@ -283,6 +285,21 @@ async def create_criterion(criterion: CriterionCreate, db: Session = Depends(get
     db.commit()
     db.refresh(new_criterion)
     return new_criterion
+
+@app.post("/generate-pdf")
+async def generate_pdf(request: Request):
+    data = await request.json()
+    candidates = data.get("candidates", [])
+    print("Received candidates data:", candidates)
+
+    # Generate PDF
+    pdf_buffer = create_candidates_pdf(candidates)
+
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=report.pdf"}
+    )
 
 # @app.post("/stream")
 # async def stream():
