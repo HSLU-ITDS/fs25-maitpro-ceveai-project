@@ -24,6 +24,8 @@ export function AppSidebar() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null); // optionally type this later
   const [criteria, setCriteria] = useState<Criteria[]>([]);
+  const [shownCriteria, setShownCriteria] = useState<string[]>([]);
+  const [weights, setWeights] = useState<{ [key: string]: number }>({});
 
   // Fetch criteria from backend
   const fetchCriteria = async () => {
@@ -43,11 +45,31 @@ export function AppSidebar() {
     setLoading(true);
     setError(null);
     setResult(null);
-    const adjustedCriteria = mergeCriteriaWeights(criteria, {});
+
+    // Get the criteria with their weights
+    const criteriaWithWeights = criteria
+      .filter((c) => shownCriteria.includes(c.name)) // Only include shown criteria
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        description: c.description,
+        weight: weights[c.name] / 100, // Convert percentage to decimal
+      }));
+
+    // Add these logs
+    console.log("Criteria:", criteria);
+    console.log("Shown Criteria:", shownCriteria);
+    console.log("Weights:", weights);
+    console.log("Criteria with Weights:", criteriaWithWeights);
+
     const formData = new FormData();
     files.forEach((file) => formData.append("files", file));
-    formData.append("criteria", JSON.stringify(adjustedCriteria));
+    formData.append("criteria", JSON.stringify(criteriaWithWeights));
     formData.append("prompt", JSON.stringify({ job_description: prompt }));
+
+    // Log the actual data being sent
+    console.log("Form Data Criteria:", formData.get("criteria"));
+
     try {
       const response = await fetch("http://localhost:8000/analyze-cvs", {
         method: "POST",
@@ -64,6 +86,14 @@ export function AppSidebar() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCriteriaChange = (
+    shown: string[],
+    newWeights: { [key: string]: number }
+  ) => {
+    setShownCriteria(shown);
+    setWeights(newWeights);
   };
 
   return (
@@ -102,7 +132,11 @@ export function AppSidebar() {
           </SidebarGroup>
 
           <SidebarGroup className="flex flex-col space-y-2">
-            <MetricsPopup criteria={criteria} refetchCriteria={fetchCriteria} />
+            <MetricsPopup
+              criteria={criteria}
+              refetchCriteria={fetchCriteria}
+              onCriteriaChange={handleCriteriaChange}
+            />
             <Button
               type="submit"
               disabled={loading || files.length === 0}

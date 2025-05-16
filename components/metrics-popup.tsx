@@ -17,17 +17,22 @@ const DEFAULT_METRICS = [
   "Grammar",
   "Relevance",
   "Experience",
-  "Conciseness",
-  "Engagement",
-  "Cohesiveness",
+  "Leadership",
+  "Education",
+  "Skills",
 ];
 
 const MetricsPopup = ({
   criteria,
   refetchCriteria,
+  onCriteriaChange,
 }: {
   criteria: Criteria[];
   refetchCriteria: () => Promise<void>;
+  onCriteriaChange: (
+    shown: string[],
+    weights: { [key: string]: number }
+  ) => void;
 }) => {
   const [title, setTitle] = React.useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -210,6 +215,11 @@ const MetricsPopup = ({
       )
     );
   };
+
+  // Add this effect to notify parent of changes
+  useEffect(() => {
+    onCriteriaChange(shownCriteria, weights);
+  }, [shownCriteria, weights, onCriteriaChange]);
 
   return (
     <div>
