@@ -7,6 +7,7 @@ import Header from "@/components/header";
 type CandidateScore = {
   criterion: string;
   score: number;
+  explanation?: string;
 };
 
 type Candidate = {

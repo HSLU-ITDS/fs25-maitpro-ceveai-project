@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -25,6 +26,7 @@ type Candidate = {
 type CandidateScore = {
   criterion: string;
   score: number;
+  explanation?: string;
 };
 
 type ResultsTableProps = {
@@ -61,7 +63,7 @@ export function ResultsTable({
             });
 
             if (!response.ok) {
-              alert("Failed to generate PDF");
+              toast.error("Failed to generate PDF");
               return;
             }
 
@@ -74,6 +76,7 @@ export function ResultsTable({
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
+            toast.success("PDF report generated successfully");
           }}
         >
           Export to PDF

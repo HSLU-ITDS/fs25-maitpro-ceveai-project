@@ -241,7 +241,8 @@ async def get_results(job_analysis_id: str, db: Session = Depends(get_db)):
                 criterion = db.query(models.Criterion).filter(models.Criterion.id == job_analysis_criterion.criterion_id).first() if job_analysis_criterion else None
                 score_list.append({
                     "criterion": criterion.name if criterion else "Unknown",
-                    "score": round(score.score, 1)
+                    "score": round(score.score, 1),
+                    "explanation": score.explanation if score.explanation else ""
                 })
             candidates.append({
                 "index": idx + 1,  # 1-based index for rank
