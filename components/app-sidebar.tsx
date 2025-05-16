@@ -14,7 +14,6 @@ import { FileUploader } from "@/components/FileUpload";
 import { useState, useEffect } from "react";
 import MetricsPopup from "./metrics-popup";
 import { useRouter } from "next/navigation";
-import { mergeCriteriaWeights } from "@/lib/utils";
 import { Criteria } from "@/lib/data";
 
 export function AppSidebar() {

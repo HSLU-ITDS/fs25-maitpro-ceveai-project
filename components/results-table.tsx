@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -11,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { candidates } from "@/lib/data";
+import { Button } from "./ui/button";
 
 type Candidate = {
   index: number;
@@ -24,6 +26,7 @@ type Candidate = {
 type CandidateScore = {
   criterion: string;
   score: number;
+  explanation?: string;
 };
 
 type ResultsTableProps = {
@@ -46,7 +49,39 @@ export function ResultsTable({
 
   return (
     <div className="w-full">
-      <h1 className="py-1 text-muted-foreground">Top Candidates</h1>
+      <div className="h-fit w-full flex justify-between pb-2 items-end">
+        <h1 className=" text-muted-foreground">Top Candidates</h1>
+        <Button
+          className="bg-transparent text-primary border-2 border-border hover:bg-muted"
+          onClick={async () => {
+            const response = await fetch("http://localhost:8000/generate-pdf", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ candidates }),
+            });
+
+            if (!response.ok) {
+              toast.error("Failed to generate PDF");
+              return;
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "candidates-report.pdf";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("PDF report generated successfully");
+          }}
+        >
+          Export to PDF
+        </Button>
+      </div>
 
       {/* Table container with relative positioning */}
       <div className="relative">
