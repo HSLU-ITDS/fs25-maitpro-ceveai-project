@@ -15,6 +15,12 @@ import { useState, useEffect } from "react";
 import MetricsPopup from "./metrics-popup";
 import { useRouter } from "next/navigation";
 import { Criteria } from "@/lib/data";
+import { HistoryDialog } from "./history-dialog";
+
+type JobAnalysis = {
+  id: string;
+  created_at: string;
+};
 
 export function AppSidebar() {
   const [files, setFiles] = useState<File[]>([]);
@@ -25,6 +31,7 @@ export function AppSidebar() {
   const [criteria, setCriteria] = useState<Criteria[]>([]);
   const [shownCriteria, setShownCriteria] = useState<string[]>([]);
   const [weights, setWeights] = useState<{ [key: string]: number }>({});
+  const [jobAnalyses, setJobAnalyses] = useState<JobAnalysis[]>([]);
 
   // Fetch criteria from backend
   const fetchCriteria = async () => {
@@ -33,8 +40,23 @@ export function AppSidebar() {
     setCriteria(data.criteria);
   };
 
+  // Fetch job analyses
+  const fetchJobAnalyses = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/job-analyses");
+      if (!response.ok) {
+        throw new Error("Failed to fetch job analyses");
+      }
+      const data = await response.json();
+      setJobAnalyses(data.job_analyses);
+    } catch (error) {
+      console.error("Error fetching job analyses:", error);
+    }
+  };
+
   useEffect(() => {
     fetchCriteria();
+    fetchJobAnalyses();
   }, []);
 
   const router = useRouter();
@@ -79,6 +101,10 @@ export function AppSidebar() {
       }
       const data = await response.json();
       const jobAnalysisId = data.job_analysis_id;
+
+      // Fetch updated job analyses after successful evaluation
+      await fetchJobAnalyses();
+
       router.push(`/results/${jobAnalysisId}`);
     } catch (err) {
       setError((err as Error).message);
@@ -125,7 +151,7 @@ export function AppSidebar() {
                 placeholder="Type your message here."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                className="min-h-36 max-h-50 overflow-auto resize-none"
+                className="min-h-36 max-h-38 overflow-auto resize-none"
               />
             </div>
           </SidebarGroup>
@@ -146,6 +172,13 @@ export function AppSidebar() {
             {error && <p className="text-destructive text-sm">{error}</p>}
           </SidebarGroup>
         </form>
+
+        <SidebarGroup className="h-10 w-full mt-auto flex flex-col">
+          <HistoryDialog
+            jobAnalyses={jobAnalyses}
+            onRefresh={fetchJobAnalyses}
+          />
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter />
