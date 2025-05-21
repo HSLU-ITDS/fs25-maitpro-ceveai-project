@@ -58,7 +58,7 @@ If you prefer to set up manually:
 #### Backend Setup
 ```bash
 cd backend
-python3 -m venv fastapienv
+python3 -m venv venv
 source fastapienv/bin/activate
 pip install fastapi uvicorn python-dotenv
 uvicorn main:app --reload --port 8000
