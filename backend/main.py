@@ -16,6 +16,7 @@ from . import models
 from backend.schemas import CriterionCreate, CriterionOut
 from fastapi.responses import StreamingResponse
 from .services.generatePDF import create_candidates_pdf
+import traceback
 #from services.pdf_service import PDFService
 
 logging.basicConfig(
@@ -301,6 +302,29 @@ async def generate_pdf(request: Request):
         media_type="application/pdf",
         headers={"Content-Disposition": "attachment; filename=report.pdf"}
     )
+
+@app.get("/job-analyses")
+async def get_job_analyses(db: Session = Depends(get_db)):
+    try:
+        # Fetch all job analyses ordered by creation date (newest first)
+        job_analyses = (
+            db.query(models.JobAnalysis)
+            .order_by(models.JobAnalysis.created_at.desc())
+            .all()
+        )
+        
+        return {
+            "status": "success",
+            "job_analyses": [
+                {
+                    "id": str(analysis.id),  # Convert UUID to string
+                    "created_at": analysis.created_at.isoformat()
+                } for analysis in job_analyses
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving job analyses: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # @app.post("/stream")
 # async def stream():
