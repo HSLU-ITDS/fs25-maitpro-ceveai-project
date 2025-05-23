@@ -1,0 +1,62 @@
+name: fs25-maitpro-ceveai-project
+services:
+  db:
+    image: docker.io/postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dbpass
+      POSTGRES_DB: ceveai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    ports:
+      - "8000"
+    volumes:
+      - ./.env.backend:/app/.env:ro
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    env_file:
+      - ./.env.frontend
+    ports:
+      - "3000"
+    restart: unless-stopped
+
+  nginx-frontend-proxy:
+    image: nginx:latest
+    depends_on:
+      - frontend
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx-frontend.conf:/etc/nginx/nginx.conf
+      - ./certs:/etc/nginx/certs:ro
+    restart: unless-stopped
+
+  nginx-backend-proxy:
+    image: nginx:latest
+    depends_on:
+      - backend
+    ports:
+      - "8443:443"
+    volumes:
+      - ./nginx-backend.conf:/etc/nginx/nginx.conf
+      - ./certs:/etc/nginx/certs:ro
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

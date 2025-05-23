@@ -21,14 +21,18 @@ Before you begin, ensure you have the following installed:
 - [Node.js](https://nodejs.org/) (Latest LTS version)
 - [Python 3](https://www.python.org/) (3.8 or higher)
 - [npm](https://www.npmjs.com/) (comes with Node.js)
+- Docker 
 - OpenAI API key
 
 ### Environment Setup
 
-Create a `.env` file in the root directory and add your OpenAI API key:
+#### Backend
+Create a `.env.backend` file in the root directory:
 
 ```bash
-OPENAI_API_KEY=your_api_key_here
+DATABASE_URL=postgresql://postgres:dbpass@host.docker.internal:5432/ceveai
+PROVIDER=openai
+OPENAI_API_KEY=<your_api_key_here>
 ```
 
 You can obtain an API key by:
@@ -36,6 +40,13 @@ You can obtain an API key by:
 2. Creating an account or signing in
 3. Navigating to API keys section
 4. Creating a new API key
+
+#### Backend
+Create a `.env.frontend` file in the root directory:
+
+```bash
+NEXT_PUBLIC_BACKEND_API=https://...
+```
 
 ## Development Setup
 

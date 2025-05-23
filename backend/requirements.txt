@@ -7,4 +7,5 @@ pandas
 python-multipart
 pdf2image
 sqlalchemy
-psycopg2-binary 
+psycopg2-binary
+reportlab

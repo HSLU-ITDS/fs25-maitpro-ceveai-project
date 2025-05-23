@@ -3,11 +3,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import logging
 from sqlalchemy.exc import OperationalError
+import os
 
 logger = logging.getLogger(__name__)
 
 # Replace with your actual database URL (e.g., SQLite for local dev or PostgreSQL in prod)
-DATABASE_URL = "postgresql://postgres:dbpass@localhost:5432/cevai"  # Use PostgreSQL URI in production
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:dbpass@localhost:5432/ceveai")  # Use PostgreSQL URI in production
 
 # Create engine with connection verification
 try:

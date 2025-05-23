@@ -67,3 +67,6 @@ coverage.xml
 # Logs
 backend.log
 *.log
+
+# Other files
+certs/
