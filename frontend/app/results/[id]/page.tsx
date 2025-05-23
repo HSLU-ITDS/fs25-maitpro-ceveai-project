@@ -1,5 +1,6 @@
 import ResultsPage from "./ResultsPage";
 import React, { Suspense } from "react";
+import { endpoints } from "@/lib/api";
 
 function Loading() {
   return (
@@ -9,12 +10,9 @@ function Loading() {
   );
 }
 
-export default async function Page({ params }: { params: { id: string } }) {
-  const resolvedParams = await params;
+export default async function Page(props: any) {
   const fetchData = async () => {
-    const res = await fetch(
-      `http://localhost:8000/results/${resolvedParams.id}`
-    );
+    const res = await fetch(endpoints.results(props.params.id));
     const data = await res.json();
     console.log(data);
     return data;

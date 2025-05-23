@@ -221,6 +221,10 @@ const MetricsPopup = ({
     onCriteriaChange(shownCriteria, weights);
   }, [shownCriteria, weights, onCriteriaChange]);
 
+  const handleCriterionChange = (criterion: Criteria) => {
+    // Your handler code here
+  };
+
   return (
     <div>
       <Dialog open={dialogOpen} onOpenChange={handleDialogOpen}>
