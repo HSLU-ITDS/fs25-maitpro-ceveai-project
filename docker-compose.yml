@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: dbpass
       POSTGRES_DB: ceveai
     ports:
-      - "5432:5432"
+      - "5444:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -30,10 +30,12 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - backend
-    env_file:
-      - ./.env.frontend
+    volumes:
+      - ./.env.frontend:/app/.env:ro
     ports:
       - "3000"
+    environment:
+      - API_URL=https://localhost:8443
     restart: unless-stopped
 
   nginx-frontend-proxy:

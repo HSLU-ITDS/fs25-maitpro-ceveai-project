@@ -54,7 +54,7 @@ export function ResultsTable({
         <Button
           className="bg-transparent text-primary border-2 border-border hover:bg-muted"
           onClick={async () => {
-            const response = await fetch(endpoints.generatePDF, {
+            const response = await fetch(endpoints.generatePDF(), {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

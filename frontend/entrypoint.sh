@@ -1,8 +1,12 @@
 #!/bin/sh
 
-# Replace placeholder in public/runtime-config.js with actual API_URL
-echo "Injecting API_URL into runtime-config.js"
-sed -i "s|__API_URL__|${API_URL}|g" /app/public/runtime-config.js
+CONFIG_FILE=/app/public/config.js
 
-# Run the actual app
-exec "$@"
+cat <<EOF > $CONFIG_FILE
+window.__CONFIG__ = {
+  API_URL: "${API_URL}"
+};
+EOF
+
+# Start the Next.js app
+exec "$@" 

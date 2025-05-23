@@ -40,7 +40,7 @@ export function AppSidebar() {
 
   // Fetch criteria from backend
   const fetchCriteria = async () => {
-    const response = await fetch(endpoints.criteria);
+    const response = await fetch(endpoints.criteria());
     const data = await response.json();
     setCriteria(data.criteria);
   };
@@ -48,7 +48,7 @@ export function AppSidebar() {
   // Fetch job analyses
   const fetchJobAnalyses = async () => {
     try {
-      const response = await fetch(endpoints.jobAnalyses);
+      const response = await fetch(endpoints.jobAnalyses());
       if (!response.ok) {
         throw new Error("Failed to fetch job analyses");
       }
@@ -96,7 +96,7 @@ export function AppSidebar() {
     console.log("Form Data Criteria:", formData.get("criteria"));
 
     try {
-      const response = await fetch(endpoints.analyzeCVs, {
+      const response = await fetch(endpoints.analyzeCVs(), {
         method: "POST",
         body: formData,
       });
