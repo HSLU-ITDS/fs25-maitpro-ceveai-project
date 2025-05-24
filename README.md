@@ -41,32 +41,9 @@ You can obtain an API key by:
 3. Navigating to API keys section
 4. Creating a new API key
 
-#### Backend
-Create a `.env.frontend` file in the root directory:
-
-```bash
-NEXT_PUBLIC_BACKEND_API=https://...
-```
-
 ## Development Setup
 
-We've provided a script to automate the development environment setup. Simply run:
-
-```bash
-./run_dev.sh
-```
-
-This script will:
-1. Create and activate a Python virtual environment
-2. Install all Python dependencies
-3. Install Node.js dependencies
-4. Start both the backend and frontend development servers
-
-### Manual Setup
-
-If you prefer to set up manually:
-
-#### Backend Setup
+### Backend Setup
 ```bash
 cd backend
 python3 -m venv venv
@@ -75,13 +52,13 @@ pip install fastapi uvicorn python-dotenv
 uvicorn main:app --reload --port 8000
 ```
 
-#### Frontend Setup
+### Frontend Setup
 ```bash
 npm install
 npm run dev
 ```
 
-## Accessing the Application
+### Accessing the Application
 
 - Frontend: [http://localhost:3000](http://localhost:3000)
 - Backend API: [http://localhost:8000](http://localhost:8000)

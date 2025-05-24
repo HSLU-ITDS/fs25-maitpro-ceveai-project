@@ -11,8 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { candidates } from "@/lib/data";
 import { Button } from "./ui/button";
+import { endpoints } from "@/lib/api";
 
 type Candidate = {
   index: number;
@@ -54,7 +54,7 @@ export function ResultsTable({
         <Button
           className="bg-transparent text-primary border-2 border-border hover:bg-muted"
           onClick={async () => {
-            const response = await fetch("http://localhost:8000/generate-pdf", {
+            const response = await fetch(endpoints.generatePDF(), {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

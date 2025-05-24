@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { toast } from "sonner";
+import { endpoints } from "@/lib/api";
 
 interface AddMetricsProps {
   initialName?: string;
@@ -37,7 +38,7 @@ const AddMetrics = ({
 
     // Call backend to save
     try {
-      const res = await fetch("http://localhost:8000/criteria", {
+      const res = await fetch(endpoints.criteria(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

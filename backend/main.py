@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from services.llm_service import get_llm_service
 from services.ocr_services import OCRService
 from pydantic import BaseModel
-from database import engine, SessionLocal
+from database import engine, SessionLocal, create_default_rows
 from sqlalchemy.orm import Session
 from models import Base, Criterion, JobAnalysis, CVAnalysis, CVScore, JobAnalysisCriterion
 from schemas import CriterionCreate, CriterionOut
@@ -45,17 +45,8 @@ app = FastAPI()
 logger.info("FastAPI application initialized")
 
 Base.metadata.create_all(bind=engine)
+create_default_rows()
 logger.info("Created db tables")
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
-    allow_credentials=False,  # Must be False when allow_origins=["*"]
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
-)
-logger.info("CORS middleware configured")
 
 def get_db():
     logger.info("Creating new database session")
@@ -179,8 +170,8 @@ async def analyze_cvs(
             # Format result for response
             formatted_results.append({
                 "filename": result["filename"],
-                "candidate": result["candidate"],
-                "summary": result["summary"],
+                "candidate": result.get("candidate", "Unknown"),
+                "summary": result.get("summary", ""),
                 "scores": [
                     {
                         "criterion_name": criterion["name"],

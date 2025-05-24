@@ -30,10 +30,10 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - backend
-    env_file:
-      - ./.env.frontend
     ports:
       - "3000"
+    environment:
+      - API_URL=https://localhost:8443
     restart: unless-stopped
 
   nginx-frontend-proxy:

@@ -16,10 +16,16 @@ import MetricsPopup from "./metrics-popup";
 import { useRouter } from "next/navigation";
 import { Criteria } from "@/lib/data";
 import { HistoryDialog } from "./history-dialog";
+import { endpoints } from "@/lib/api";
 
 type JobAnalysis = {
   id: string;
   created_at: string;
+};
+
+type AnalysisResult = {
+  job_analysis_id: string;
+  // Add other result properties as needed
 };
 
 export function AppSidebar() {
@@ -27,7 +33,6 @@ export function AppSidebar() {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<any>(null); // optionally type this later
   const [criteria, setCriteria] = useState<Criteria[]>([]);
   const [shownCriteria, setShownCriteria] = useState<string[]>([]);
   const [weights, setWeights] = useState<{ [key: string]: number }>({});
@@ -35,7 +40,7 @@ export function AppSidebar() {
 
   // Fetch criteria from backend
   const fetchCriteria = async () => {
-    const response = await fetch("http://localhost:8000/criteria");
+    const response = await fetch(endpoints.criteria());
     const data = await response.json();
     setCriteria(data.criteria);
   };
@@ -43,7 +48,7 @@ export function AppSidebar() {
   // Fetch job analyses
   const fetchJobAnalyses = async () => {
     try {
-      const response = await fetch("http://localhost:8000/job-analyses");
+      const response = await fetch(endpoints.jobAnalyses());
       if (!response.ok) {
         throw new Error("Failed to fetch job analyses");
       }
@@ -65,7 +70,6 @@ export function AppSidebar() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setResult(null);
 
     // Get the criteria with their weights
     const criteriaWithWeights = criteria
@@ -92,7 +96,7 @@ export function AppSidebar() {
     console.log("Form Data Criteria:", formData.get("criteria"));
 
     try {
-      const response = await fetch("http://localhost:8000/analyze-cvs", {
+      const response = await fetch(endpoints.analyzeCVs(), {
         method: "POST",
         body: formData,
       });
