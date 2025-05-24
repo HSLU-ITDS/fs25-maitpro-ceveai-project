@@ -48,16 +48,6 @@ Base.metadata.create_all(bind=engine)
 create_default_rows()
 logger.info("Created db tables")
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
-    allow_credentials=False,  # Must be False when allow_origins=["*"]
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
-)
-logger.info("CORS middleware configured")
-
 def get_db():
     logger.info("Creating new database session")
     db = SessionLocal()

@@ -18,11 +18,9 @@ import {
 
 const Landing = () => {
   const supportedModels = [
+    "GPT-3.5-turbo",
     "GPT-4o",
-    "Claude 3 Opus",
-    "Gemini Pro",
-    "Llama 3",
-    "Mistral Large",
+    "Gemini Pro"
   ];
 
   const getStartedSteps = [
