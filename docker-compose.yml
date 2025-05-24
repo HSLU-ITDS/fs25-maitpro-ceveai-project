@@ -9,6 +9,8 @@ services:
       POSTGRES_DB: ceveai
     ports:
       - "5432:5432"
+    networks:
+      - app-network
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -20,6 +22,8 @@ services:
       - db
     ports:
       - "8000"
+    networks:
+      - app-network
     volumes:
       - ./.env.backend:/app/.env:ro
     restart: unless-stopped
@@ -32,6 +36,8 @@ services:
       - backend
     ports:
       - "3000"
+    networks:
+      - app-network
     environment:
       - API_URL=https://localhost:8443
     restart: unless-stopped
@@ -42,6 +48,8 @@ services:
       - frontend
     ports:
       - "443:443"
+    networks:
+      - app-network
     volumes:
       - ./nginx-frontend.conf:/etc/nginx/nginx.conf
       - ./certs:/etc/nginx/certs:ro
@@ -53,6 +61,8 @@ services:
       - backend
     ports:
       - "8443:443"
+    networks:
+      - app-network
     volumes:
       - ./nginx-backend.conf:/etc/nginx/nginx.conf
       - ./certs:/etc/nginx/certs:ro
@@ -60,3 +70,7 @@ services:
 
 volumes:
   postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
