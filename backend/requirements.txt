@@ -5,7 +5,7 @@ openai
 google-generativeai
 pandas
 python-multipart
-pdf2image
 sqlalchemy
 psycopg2-binary
 reportlab
+pdf2image

@@ -9,24 +9,15 @@ const Footer = () => {
             CEVEAI
           </Link>
           <nav className="flex gap-6">
-            <Link
-              href="/pricing"
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
+            <h1 className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Pricing
-            </Link>
-            <Link
-              href="/documentation"
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
+            </h1>
+            <h1 className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Documentation
-            </Link>
-            <Link
-              href="/support"
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
+            </h1>
+            <h1 className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Support
-            </Link>
+            </h1>
           </nav>
         </div>
 

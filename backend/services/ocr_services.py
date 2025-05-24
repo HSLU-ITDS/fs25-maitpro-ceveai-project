@@ -87,7 +87,8 @@ class OCRService:
                             "document_type": "PDF",
                             "markdown_content": "",
                             "items": [],
-                            "error": "No images extracted from PDF"
+                            "error": "No images extracted from PDF",
+                            "scores": {}
                         }
                     
                     all_markdown = ""
@@ -118,8 +119,17 @@ class OCRService:
                                 {
                                     "role": "user",
                                     "content": [
-                                        {"type": "text", "text": "Please extract all text and formatting from this image and present it as a well-structured Markdown document."},
-                                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
+                                        {
+                                            "type": "text",
+                                            "text": "Please extract all text and formatting from this image and present it as a well-structured Markdown document."
+                                        },
+                                        {
+                                            "type": "image_url",
+                                            "image_url": {
+                                                "url": f"data:image/jpeg;base64,{image_base64}",
+                                                "detail": "high"
+                                            }
+                                        }
                                     ]
                                 }
                             ]
@@ -132,10 +142,20 @@ class OCRService:
                             print(f"Error processing image {idx + 1}: {str(e)}")
                             continue
                     
+                    if not all_markdown:
+                        return {
+                            "document_type": "PDF",
+                            "markdown_content": "",
+                            "items": [],
+                            "error": "Failed to extract text from PDF",
+                            "scores": {}
+                        }
+                    
                     return {
                         "document_type": "PDF",
                         "markdown_content": all_markdown,
-                        "items": []
+                        "items": [],
+                        "scores": {}
                     }
                     
                 except Exception as e:
@@ -172,14 +192,15 @@ class OCRService:
         Returns a list of dicts: { "filename": ..., "scores": ..., "summary": ... }
         """
         results = []
-        for cv in cv_contents:
-            # Build criteria string for the prompt
-            criteria_str = "\n".join(
-                f"- {c['name']}: {c['description']}" for c in criteria
-            )
+        batch_size = 2  # Process 2 CVs at a time
+        
+        # Build criteria string for the prompt
+        criteria_str = "\n".join(
+            f"- {c['name']}: {c['description']}" for c in criteria
+        )
 
-            # System prompt
-            system_prompt = f"""
+        # System prompt
+        system_prompt = f"""
 You are an expert CV analyzer with a focus on objective, data-driven evaluation. Your task is to analyze a CV and score it against specific criteria, always considering the job description when relevant.
 
 Job Description:
@@ -212,49 +233,95 @@ Evaluation Guidelines:
    - Maintain the exact JSON structure provided in the user prompt
 """
 
-            # User prompt
-            user_prompt = f"""CV Content:
+        # Process CVs in batches
+        for i in range(0, len(cv_contents), batch_size):
+            batch = cv_contents[i:i + batch_size]
+            batch_results = []
+            
+            for cv in batch:
+                # User prompt
+                user_prompt = f"""Analyze this CV and provide scores for each criterion:
+
+CV Content:
 {cv['content']}
 
-First, extract the candidate's full name from the CV. If the name is not specified, use 'N/A'. Then provide your analysis in the following format:
-{{
-    "candidate": "<full name from CV or N/A>",
-    "scores": {{
-        "criterion1": {{
-            "score": <number with one decimal point>,
-            "explanation": "<brief reasoning for the score>"
-        }},
-        "criterion2": {{
-            "score": <number with one decimal point>,
-            "explanation": "<brief reasoning for the score>"
-        }}
-    }},
-    "summary": "<2 paragraph detailed summary of key qualifications>"
-}}
-"""
+Extract the candidate's name (use 'N/A' if not found) and provide scores with explanations."""
 
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ]
+                messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": """You are a JSON-first assistant. Always respond with valid JSON that follows this exact structure:
+{
+    "candidate": "string",
+    "scores": {
+        "<criterion_name>": {
+            "score": number,
+            "explanation": "string"
+        }
+    },
+    "summary": "string"
+}
 
-            response = await self.llm_service.generate_response(messages)
-            # Clean up and parse response
-            response = response.strip()
-            if response.startswith("```json"):
-                response = response[7:]
-            if response.startswith("```"):
-                response = response[3:]
-            if response.endswith("```"):
-                response = response[:-3]
-            response = response.strip()
-            try:
-                result = json.loads(response)
-            except Exception as e:
-                result = {"error": f"Failed to parse LLM response: {str(e)}", "raw_response": response}
-            results.append({
-                "filename": cv["filename"],
-                **result
-            })
+Example with multiple criteria:
+{
+    "candidate": "John Doe",
+    "scores": {
+        "Criterion 1": {
+            "score": 8.5,
+            "explanation": "Strong proficiency in required technologies"
+        },
+        "Criterion 2": {
+            "score": 7.0,
+            "explanation": "Relevant work history in the field"
+        },
+        "Criterion 3": {
+            "score": 9.0,
+            "explanation": "Excellent academic background"
+        }
+    },
+    "summary": "John Doe is a qualified candidate with strong technical skills and relevant experience..."
+}
+
+Rules:
+1. All objects must be properly closed
+2. Use double quotes for strings
+3. Use numbers (not strings) for scores
+4. No trailing commas
+5. No comments or markdown formatting
+6. Use the exact criterion names provided in the criteria list
+7. Include ALL criteria from the provided list"""},
+                    {"role": "user", "content": user_prompt}
+                ]
+
+                try:
+                    response = await self.llm_service.generate_response(messages)
+                    # Clean up and parse response
+                    response = response.strip()
+                    print(f"Raw LLM response for {cv['filename']}: {response}")  # Add logging
+                    if response.startswith("```json"):
+                        response = response[7:]
+                    if response.startswith("```"):
+                        response = response[3:]
+                    if response.endswith("```"):
+                        response = response[:-3]
+                    response = response.strip()
+                    print(f"Cleaned response for {cv['filename']}: {response}")  # Add logging
+                    
+                    result = json.loads(response)
+                    batch_results.append({
+                        "filename": cv["filename"],
+                        **result
+                    })
+                except Exception as e:
+                    print(f"Error processing CV {cv['filename']}: {str(e)}")
+                    batch_results.append({
+                        "filename": cv["filename"],
+                        "error": f"Failed to process CV: {str(e)}",
+                        "scores": {},
+                        "candidate": "Unknown",
+                        "summary": ""
+                    })
+            
+            results.extend(batch_results)
+            
         return results
     
